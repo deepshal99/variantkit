@@ -85,11 +85,20 @@ if (!existsSync(patchSrc)) {
       if (existsSync(pkgPath)) {
         const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
         pkg.scripts = pkg.scripts || {}
-        if (!pkg.scripts.postinstall) pkg.scripts.postinstall = 'patch-package'
-        else if (!pkg.scripts.postinstall.includes('patch-package'))
-          pkg.scripts.postinstall = `${pkg.scripts.postinstall} && patch-package`
-        writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
-        did('add "postinstall": "patch-package" to package.json')
+        const cur = pkg.scripts.postinstall
+        if (!cur) {
+          pkg.scripts.postinstall = 'patch-package'
+          writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
+          did('add "postinstall": "patch-package" to package.json')
+        } else if (cur.includes('patch-package')) {
+          log('postinstall already runs patch-package — left as is')
+        } else {
+          // Don't clobber an existing postinstall — run theirs first, then patch-package.
+          // Append (never prepend) and say so loudly so they can review it.
+          pkg.scripts.postinstall = `${cur} && patch-package`
+          writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
+          warn(`appended patch-package to your existing postinstall (now: "${pkg.scripts.postinstall}") — review it`)
+        }
       }
       execSync('npm i -D patch-package', { cwd: target, stdio: 'inherit' })
       execSync('npx patch-package', { cwd: target, stdio: 'inherit' })
