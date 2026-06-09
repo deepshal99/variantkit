@@ -1,50 +1,120 @@
 ---
 name: variantkit
-description: AI-assisted UI exploration. When the user asks to build, design, or change any user-facing UI (a component, screen, section, state, hero, card, layout, or visual treatment), generate 2-4 structural variants instead of one and wire them to a live DialKit panel so they can switch, tweak, finalize, and have the losers pruned. Also handles "deslop" / "remove the AI slop" requests. Triggers on building/redesigning UI, "give me options/takes/variants", "explore directions", "deslop", "this looks AI-generated".
+description: AI-assisted UI exploration. When the user asks to build, design, or change any user-facing UI (a component, screen, section, state, hero, card, layout, or visual treatment), generate 2-4 structural variants instead of one and wire them to a live DialKit panel so they can switch, tweak, finalize, and have the losers pruned to one clean component. Also handles "deslop" / "remove the AI slop" requests. Triggers on building/redesigning UI, "give me options/takes/variants", "explore directions", "deslop", "this looks AI-generated".
 ---
 
 # VariantKit
 
-Make UI exploration cheap and structured. Instead of committing to one interpretation of a
-UI request, generate several variants the user can judge live, then prune to the winner. The
-full contract lives in the project's `AGENT.md` — read it before scaffolding.
+Make UI exploration cheap and structured: generate several variants the user judges live,
+then prune to the winner. This skill is self-contained — you can scaffold and prune from it
+alone. If the project has an `AGENT.md` with a VariantKit section, that is authoritative; read
+it and prefer it over this summary.
 
 ## When to use (proactively)
 
 Trigger whenever the user asks to build or change user-facing UI and the result is open-ended
-(aesthetic, layout, tone, structure). Default to offering options. Skip only for mechanical,
-exactly-specified changes or when the user says "just one".
+(aesthetic, layout, tone, structure, density). Default to offering 2-4 variants. Skip only for
+mechanical, exactly-specified changes, or when the user says "just one".
 
-## First: is this project set up?
+## Step 1 — make sure the project is set up
 
-Check for `AGENT.md` + `dialkit` in the project's deps.
+Check for `dialkit` in the project's deps and a `buildDecision.ts` (usually `src/variantkit/`).
+If missing, set it up from the project root:
 
-- **Not set up:** run `node <path-to>/variantkit/init.mjs .` (installs `dialkit motion`, drops
-  in `buildDecision.ts` + `AGENT.md`, adds the rules pointer). Tell the user what it did.
-- **Set up:** proceed.
+```sh
+npx github:deepshal99/variantkit
+```
 
-## Build a variant set
+That installs `dialkit motion`, adds `buildDecision.ts` + `AGENT.md`, and a rules pointer.
+Also ensure the panel host exists once in the app root (sibling of the app, not a wrapper):
 
-Follow `AGENT.md` exactly:
-- Scaffold `ComponentName/` with `index.tsx` (the only file wiring DialKit), `registry.ts`,
-  and `variants/<key>.tsx` — 2-4 self-contained components sharing the same props and the
-  same morph transition.
-- `index.tsx` drives selection via `useDialKit`: variant = a `select`, params = controls,
-  finalize = an `action` whose `onAction` calls `buildDecision` + `copyDecision`.
-- Every variant must pass the **deslop** rules in `AGENT.md §6` — no random mono/italics,
-  all-caps eyebrows, decorative lines/dots, unmotivated warm accents, oversized radii, em
-  dashes, or emoji. Generated UI must not look AI-generated.
+```tsx
+import { DialRoot } from 'dialkit'
+import 'dialkit/styles.css'
+// render <App /> and <DialRoot /> as siblings
+```
 
-## Finalize → prune
+If you cannot run the installer (offline), you can still scaffold using the recipe below; add
+`dialkit motion` to deps and copy `buildDecision.ts` from the variantkit repo when possible.
 
-When the user finalizes, they get a `decision.json` (winner + override diff + prune list).
-On the next turn, prune per `AGENT.md §4`: inline the values into the winner, rename it to
-`index.tsx`, delete the losers + registry, remove the DialKit wiring. Run the §5 self-check.
-The result is a plain component with zero VariantKit/DialKit residue.
+## Step 2 — scaffold a variant set
 
-## Deslop on request
+File-per-variant. Only `index.tsx` wires the tool; each variant is a plain, self-contained
+component. This is what makes the later prune reliable (delete files + one rename).
 
-On "deslop" / "remove the AI slop" / "this looks AI-generated": run the `AGENT.md §6`
-pass — scope, scan signatures, judge each with the Intentional Test, remove only slop,
-verify in the browser, report a table. Subtract, never add. Default to keep when unsure.
-This targets generated app UI, never the VariantKit/DialKit dev panel.
+```
+ComponentName/
+  index.tsx          # the ONLY file importing dialkit / registry / buildDecision
+  registry.ts        # { key: { component, label } }
+  variants/
+    <a>.tsx          # 2-4 self-contained components, same props, same morph transition
+    <b>.tsx
+    <c>.tsx
+```
+
+`index.tsx` — variant = a DialKit `select`, params = controls, finalize = an `action`:
+
+```tsx
+import { useDialKit } from 'dialkit'
+import { registry } from './registry'
+import { buildDecision, copyDecision, type ParamValue } from '../../core/buildDecision'
+
+const DEFAULTS: Record<string, ParamValue> = { radius: 18, accent: '#1F5E54' }
+
+export default function ComponentName(props: { /* real props */ }) {
+  const v = useDialKit('ComponentName', {
+    variant: { type: 'select', options: ['a', 'b', 'c'], default: 'a' },
+    radius: [DEFAULTS.radius as number, 0, 32],
+    accent: DEFAULTS.accent as string,
+    finalize: { type: 'action', label: 'Finalize & copy decision' },
+  }, {
+    onAction: () => copyDecision(buildDecision('ComponentName', v as Record<string, ParamValue>, DEFAULTS, registry)),
+  }) as Record<string, ParamValue>
+
+  const Active = registry[String(v.variant)].component
+  return <Active {...props} radius={v.radius as number} accent={v.accent as string} />
+}
+```
+
+Each variant declares the **same** transition (a local const, duplicated on purpose so it
+stays self-contained), so switching morphs rather than snaps:
+
+```ts
+const morph = { transition: 'border-radius .25s ease, background-color .25s ease, box-shadow .25s ease, padding .25s ease' }
+```
+
+Every variant must pass the deslop checklist below — generated UI must not look AI-generated.
+
+## Step 3 — finalize → prune
+
+Finalize copies a `decision.json`: `{ component, finalized, values, overridesFromDefault,
+prune[], note, status, timestamp }`. When the user hands it back, prune (mechanical — never
+move JSX between files):
+
+1. Inline `values` (as literals) into the winner file `variants/<finalized>.tsx`.
+2. Rename that file to `index.tsx`, overwriting the shell. Do NOT copy code by hand.
+3. Delete every loser in `prune` + leftover `variants/*`; delete `registry.ts`.
+4. Remove the DialKit wiring. If this was the last variant set, also drop `<DialRoot/>`.
+
+Self-check (all must hold): no file imports `dialkit` / `registry` / `buildDecision`;
+`variants/` and `registry.ts` gone; `index.tsx` renders the winner with values inlined; the
+visible output matches the chosen variant.
+
+## Deslop — applies to generated UI, never the DialKit panel
+
+Slop is decoration without a system: a tell is slop as a one-off, fine as a consistent,
+repeated system. Default to keep when unsure; subtract, never add. On "deslop" / "this looks
+AI-generated", run a pass: scope → scan → judge each → remove only slop → verify in browser →
+report a table. Catalog:
+
+1. Random italics on headings/labels → remove; use weight/size for emphasis.
+2. Random mono font for "tech feel" → revert to UI font; numbers use `tabular-nums`.
+3. All-caps + wide-tracking "eyebrow" kickers → delete, or keep at most one system-wide.
+4. Decorative accent/divider stub lines → remove; keep only full structural rules.
+5. Ornamental colored/pulsing dots → remove; keep dots that encode real state.
+6. Unmotivated warm accents (amber/orange/rose) → map to real tokens; reserve for semantics.
+7. Decorative single letters/monograms standing for nothing → remove.
+8. Oversized radii (≥20px) → 8-12px, concentric (inner = outer − padding).
+9. One-sided / gradient highlight borders for flair → uniform 1px or none.
+10. Em dashes in copy → commas, colons, or separate sentences.
+11. Emoji in product UI → remove.
