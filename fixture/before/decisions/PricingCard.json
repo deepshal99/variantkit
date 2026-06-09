@@ -1,0 +1,13 @@
+{
+  "component": "PricingCard",
+  "finalized": "slab",
+  "values": { "radius": 12, "accent": "#175048" },
+  "overridesFromDefault": {
+    "radius": { "from": 18, "to": 12 },
+    "accent": { "from": "#1F5E54", "to": "#175048" }
+  },
+  "prune": ["ledger", "inverse"],
+  "note": "",
+  "status": "pending",
+  "timestamp": "2026-06-09T00:00:00Z"
+}

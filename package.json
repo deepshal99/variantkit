@@ -1,0 +1,17 @@
+{
+  "name": "variant-kit",
+  "version": "0.0.1",
+  "description": "AI-assisted UI exploration: generate variants, choose live, prune to the winner. Built on DialKit.",
+  "type": "module",
+  "bin": {
+    "variantkit": "variantkit/init.mjs"
+  },
+  "files": [
+    "variantkit",
+    "AGENT.md"
+  ],
+  "scripts": {
+    "init": "node variantkit/init.mjs"
+  },
+  "license": "MIT"
+}
