@@ -175,3 +175,79 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
     </MotionConfig>
   )
 }
+
+// ── Panel theme toggle ──────────────────────────────────────────────────────────────────
+// DialKit ships light only; this manages the panel's light/dark theme AND injects a small
+// sun/moon toggle into the panel header (DialKit has no slot for it, so we append one).
+// Requires dialkit-dark.css imported. Returns { theme, setTheme } if you also want a custom UI.
+
+const MOON =
+  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+const SUN =
+  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
+
+export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const s = localStorage.getItem('vk-theme')
+      if (s === 'light' || s === 'dark') return s
+    } catch {
+      /* no storage */
+    }
+    return initial
+  })
+  const themeRef = useRef(theme)
+  themeRef.current = theme
+
+  useEffect(() => {
+    const flip = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+
+    const sync = () => {
+      document.querySelectorAll('.dialkit-root').forEach((el) => el.setAttribute('data-theme', themeRef.current))
+      // inject (once) a theme toggle into each panel header, then keep its icon in sync
+      document.querySelectorAll<HTMLElement>('.dialkit-panel-header').forEach((hdr) => {
+        let btn = hdr.querySelector<HTMLButtonElement>('.vk-theme-toggle')
+        if (!btn) {
+          btn = document.createElement('button')
+          btn.className = 'vk-theme-toggle'
+          btn.type = 'button'
+          btn.setAttribute('aria-label', 'Toggle panel theme')
+          Object.assign(btn.style, {
+            marginLeft: '6px',
+            width: '26px',
+            height: '26px',
+            display: 'inline-grid',
+            placeItems: 'center',
+            border: 'none',
+            background: 'transparent',
+            borderRadius: '7px',
+            cursor: 'pointer',
+            color: 'var(--dial-text-secondary)',
+            flex: '0 0 auto',
+          } satisfies Partial<CSSStyleDeclaration>)
+          const stop = (e: Event) => e.stopPropagation()
+          btn.addEventListener('pointerdown', stop)
+          btn.addEventListener('mousedown', stop)
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation()
+            flip()
+          })
+          hdr.appendChild(btn)
+        }
+        btn.innerHTML = themeRef.current === 'dark' ? SUN : MOON
+      })
+    }
+
+    sync()
+    try {
+      localStorage.setItem('vk-theme', theme)
+    } catch {
+      /* no storage */
+    }
+    const mo = new MutationObserver(sync)
+    mo.observe(document.body, { childList: true, subtree: true })
+    return () => mo.disconnect()
+  }, [theme])
+
+  return { theme, setTheme }
+}

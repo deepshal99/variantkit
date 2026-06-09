@@ -97,14 +97,20 @@ action }`. Choose `type` by what you're building. Built-in presets (`variantkit/
 
 | type | controls it exposes |
 |------|---------------------|
-| `card` | radius, padding, accent |
-| `button` | radius, size, weight, accent, label |
-| `hero` | align, headingSize, bg, accent |
-| `badge` | radius, size, uppercase, accent |
-| `input` | radius, size, accent, label |
+| `card` | radius, padding, accent, shadow, theme |
+| `button` | radius, size, weight, accent, label, fullWidth, theme |
+| `hero` | eyebrow, headingSize, align, theme, accent |
+| `badge` | radius, size, uppercase, label, accent, theme |
+| `input` | radius, size, label, placeholder, accent |
 | `nav` | gap, sticky, accent |
 | `banner` | radius, align, dismissible, accent |
+| `table` | density, striped, radius, headerWeight, accent |
+| `toast` | radius, position, duration, accent, transition (spring) |
+| `tabs` | size, gap, accent, transition (spring) |
 | `generic` | radius, accent (fallback) |
+
+`theme` (light/dark) suits any element a design system ships in both modes. `transition`
+(DialKit's spring editor) belongs only on motion elements (toast, tabs) — not static ones.
 
 If none fit, pass a custom config object instead of a preset — same shape (`variant` select +
 your controls + `finalize` action). Add a new preset to `configs.ts` when an element type
@@ -171,8 +177,9 @@ Import these three stylesheets once (the `Studio` helper assumes them):
 - `variantkit/dialkit-clean.css` — hides the redundant "Copy parameters" button and the
   folder/header dividers (panel reads on spacing, like DialKit's own UI). **Keeps the preset
   toolbar** — that's the snapshot mechanism (below).
-- `variantkit/dialkit-dark.css` — the dark palette DialKit lacks; set `data-theme="dark"` on
-  `.dialkit-root` to use it.
+- `variantkit/dialkit-dark.css` — the dark palette DialKit lacks. Call `useDialkitTheme()`
+  (from `variantkit/react`) once: it applies the theme, persists it, and injects a sun/moon
+  toggle into the panel header so the user flips the panel's light/dark right there.
 - `variantkit/motion.css` — staggered element entrances, finalize-toast easing, press
   feedback, reduced-motion. Custom ease-out/ease-in-out curves; everything under 300ms.
 

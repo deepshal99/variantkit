@@ -27,6 +27,7 @@ export const elementConfigs: Record<string, PanelConfig> = {
     padding: [24, 12, 48],
     accent: ACCENT,
     shadow: { type: 'select', options: ['none', 'soft', 'strong'], default: 'soft' },
+    theme: { type: 'select', options: ['light', 'dark'], default: 'light' }, // design-system both-modes
   },
   button: {
     radius: [10, 0, 24],
@@ -35,12 +36,13 @@ export const elementConfigs: Record<string, PanelConfig> = {
     accent: ACCENT,
     label: 'Get started',
     fullWidth: false,
+    theme: { type: 'select', options: ['light', 'dark'], default: 'light' },
   },
   hero: {
     eyebrow: 'New',
     headingSize: [48, 28, 72],
     align: { type: 'select', options: ['left', 'center'], default: 'center' },
-    bg: { type: 'select', options: ['light', 'dark'], default: 'light' },
+    theme: { type: 'select', options: ['light', 'dark'], default: 'light' },
     accent: ACCENT,
   },
   badge: {
@@ -49,6 +51,7 @@ export const elementConfigs: Record<string, PanelConfig> = {
     uppercase: true,
     label: 'Beta',
     accent: ACCENT,
+    theme: { type: 'select', options: ['light', 'dark'], default: 'light' },
   },
   input: {
     radius: [8, 0, 20],
