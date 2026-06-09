@@ -27,11 +27,25 @@ Then add the panel host once, in your app root:
 ```tsx
 import { DialRoot } from 'dialkit'
 import 'dialkit/styles.css'
+import './variantkit/dialkit-clean.css' // hide the redundant copy button + dividers
+import './variantkit/dialkit-dark.css'  // optional dark palette
+import './variantkit/motion.css'        // stagger, toast easing, press feedback
 // render <App /> and <DialRoot /> as siblings
 ```
 
 Now ask your agent for *"three takes on the pricing card"*. Switch / tweak / finalize, paste
 the decision back, and it prunes to one clean file.
+
+### Many elements? Use the `Studio` helper
+
+```tsx
+import { Studio } from './variantkit/react'
+<Studio elements={[ /* { name, type, keys, render } per element */ ]} focusOnHover />
+```
+
+One panel, a folder per element, contextual controls by element type, per-element finalize,
+and focus-on-hover (the folder of the element you hover expands). See
+[`examples/contextual`](./examples/contextual).
 
 ## How it works
 

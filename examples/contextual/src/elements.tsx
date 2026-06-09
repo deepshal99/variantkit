@@ -4,7 +4,10 @@ import type { ReactElement } from 'react'
 
 type V = Record<string, string | number | boolean>
 const sans = 'system-ui, -apple-system, sans-serif'
-const morph = { transition: 'all .25s ease' }
+// On-screen morph between variants: exact properties, strong ease-in-out, under 300ms.
+const EASE = 'cubic-bezier(0.77,0,0.175,1)'
+const props = ['border-radius', 'background-color', 'box-shadow', 'color', 'border-color', 'padding']
+const morph = { transition: props.map((p) => `${p} 220ms ${EASE}`).join(', ') }
 const SHADOW: Record<string, string> = { none: 'none', soft: '0 18px 40px rgba(0,0,0,.10)', strong: '0 28px 60px rgba(0,0,0,.22)' }
 
 export function renderCard(variant: string, v: V): ReactElement {

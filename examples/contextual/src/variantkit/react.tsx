@@ -37,8 +37,8 @@ export interface StudioProps {
   onFinalize?: (decision: ReturnType<typeof buildDecision>) => void
 }
 
-const cfgFor = (e: ElementDef) =>
-  (e.config ?? panelConfig(e.type, e.keys, { component: e.name })) as Record<string, ParamValue>
+const cfgFor = (e: ElementDef): Record<string, unknown> =>
+  (e.config ?? panelConfig(e.type, e.keys, { component: e.name })) as Record<string, unknown>
 
 // Match DialKit's humanized folder title ("Pricing Card") back to an element name.
 const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase()
@@ -61,13 +61,20 @@ function focusFolder(name: string | null) {
 
 export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize }: StudioProps) {
   const [focused, setFocused] = useState<string | null>(null)
+  // Per-element "just finalized" flag — flips the finalize button's label to a check, then
+  // reverts. In-button feedback (emil-design-eng "morphing feedback button"), not a toast.
+  const [done, setDone] = useState<Record<string, boolean>>({})
   const elsRef = useRef(elements)
   elsRef.current = elements
+  const doneTimer = useRef<ReturnType<typeof setTimeout>>()
 
-  // One combined config: a folder per element, first open and the rest collapsed.
+  // One combined config: a folder per element, first open and the rest collapsed. The active
+  // element's finalize label morphs to "✓ Copied" for ~1.5s after finalizing.
   const combined: Record<string, unknown> = {}
   elements.forEach((e, i) => {
-    combined[e.name] = { ...cfgFor(e), _collapsed: i !== 0 }
+    const base = cfgFor(e)
+    const finalize = { ...(base.finalize as object), label: done[e.name] ? '✓  Copied' : `Finalize ${e.name}` }
+    combined[e.name] = { ...base, finalize, _collapsed: i !== 0 }
   })
 
   const all = useDialKit(name, combined as never, {
@@ -79,6 +86,9 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
       const decision = buildDecision(elName, slice, defaultsOf(cfgFor(e)), regOf(e.keys))
       copyDecision(decision)
       onFinalize?.(decision)
+      setDone((d) => ({ ...d, [elName]: true }))
+      clearTimeout(doneTimer.current)
+      doneTimer.current = setTimeout(() => setDone((d) => ({ ...d, [elName]: false })), 1600)
     },
   }) as Record<string, Record<string, ParamValue>>
 
@@ -88,20 +98,23 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 56, alignItems: 'center' }}>
-      {elements.map((e) => {
+      {elements.map((e, i) => {
         const slice = all[e.name]
         if (!slice) return null
         const ring = focusOnHover && focused === e.name
         return (
           <section
             key={e.name}
+            className="vk-section"
             onMouseEnter={focusOnHover ? () => setFocused(e.name) : undefined}
             style={{
+              // @ts-expect-error CSS custom property for stagger index
+              '--vk-i': i,
               textAlign: 'center',
               borderRadius: 18,
-              outline: ring ? '2px solid rgba(31,94,84,.45)' : '2px solid transparent',
+              outline: ring ? '2px solid rgba(31,94,84,.5)' : '2px solid transparent',
               outlineOffset: 10,
-              transition: 'outline-color .2s ease',
+              transition: 'outline-color 200ms cubic-bezier(0.23,1,0.32,1)',
             }}
           >
             {e.render(String(slice.variant), slice) as ReactElement}

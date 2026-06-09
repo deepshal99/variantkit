@@ -61,7 +61,7 @@ if (SKIP_INSTALL) {
 head('2. runtime (buildDecision, configs, panel css)')
 const srcDir = existsSync(join(target, 'src')) ? join(target, 'src', 'variantkit') : join(target, 'variantkit')
 if (!DRY) mkdirSync(srcDir, { recursive: true })
-for (const file of ['buildDecision.ts', 'configs.ts', 'react.tsx', 'dialkit-clean.css', 'dialkit-dark.css']) {
+for (const file of ['buildDecision.ts', 'configs.ts', 'react.tsx', 'dialkit-clean.css', 'dialkit-dark.css', 'motion.css']) {
   const from = join(SELF, file)
   if (!existsSync(from)) fail(`missing source: ${from}`)
   const to = join(srcDir, file)

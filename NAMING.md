@@ -14,7 +14,7 @@ term here conflicts with how you named something, this file wins — rename the 
 | **Preset** | The predefined configuration for an element *type* (`card`, `button`, `hero`…) in `configs.ts`. Pick one; extend when a type recurs. | "template" |
 | **Defaults** | The frozen reference values a variant ships with. The override diff is measured against these. | "initial" |
 | **Override** | A control whose value differs from its default — the "taste signal". The set of them = the **override diff**. | "change", "delta" |
-| **Snapshot** | A saved (variant + control values) state kept so you can compare two tunings of the same element. (See "presets, reconsidered" in AGENT.md.) | "preset" (that's the per-type config), "version" |
+| **Snapshot** | A saved (variant + control values) state kept so you can compare two tunings of the same element. Implemented via DialKit's preset toolbar (≡+ / Version dropdown), reused. | "preset" (that's the per-type config) |
 | **Finalize** | Committing the chosen variant + its current values. Produces a decision. | "save", "submit" |
 | **Decision** | The machine-readable result of finalize: `{ component, finalized, values, overridesFromDefault, prune, … }`. The handoff to the agent. | "result", "output" |
 | **Prune** | The agent deleting the losing variants down to the clean winner. | "cleanup", "resolve" |

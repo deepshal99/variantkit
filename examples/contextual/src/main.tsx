@@ -4,6 +4,7 @@ import { DialRoot } from 'dialkit'
 import 'dialkit/styles.css'
 import './variantkit/dialkit-dark.css'
 import './variantkit/dialkit-clean.css'
+import './variantkit/motion.css'
 import App from './App'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

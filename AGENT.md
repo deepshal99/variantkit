@@ -167,25 +167,23 @@ not better — show what this element actually needs, nothing it doesn't.
 
 ### Hide the redundant copy button
 
-DialKit's panel has a native "Copy parameters" clipboard button and a preset toolbar
-(Add preset / Version dropdown). `variantkit/dialkit-clean.css` hides the whole preset toolbar
-and the clipboard — VariantKit commits via Finalize, so they're redundant and confusing.
-Import it once. Optional dark theme: import `variantkit/dialkit-dark.css` and set
-`data-theme="dark"` on `.dialkit-root`.
+Import these three stylesheets once (the `Studio` helper assumes them):
+- `variantkit/dialkit-clean.css` — hides the redundant "Copy parameters" button and the
+  folder/header dividers (panel reads on spacing, like DialKit's own UI). **Keeps the preset
+  toolbar** — that's the snapshot mechanism (below).
+- `variantkit/dialkit-dark.css` — the dark palette DialKit lacks; set `data-theme="dark"` on
+  `.dialkit-root` to use it.
+- `variantkit/motion.css` — staggered element entrances, finalize-toast easing, press
+  feedback, reduced-motion. Custom ease-out/ease-in-out curves; everything under 300ms.
 
-### Snapshots (the "presets", reconsidered) — deferred
+### Snapshots — keep two tunings and compare
 
-The real need behind DialKit's presets: keep **two tunings of the same element** to compare
-(e.g. Slab/radius 12/green vs Inverse/radius 4/amber) and pick one. That's a **Snapshot** =
-a saved (variant + control values) state. DialKit presets technically did this — because the
-variant is itself a control, a preset captured variant+values — but the "Version 1" UX was
-generic and confusing, so it's hidden for now.
-
-When built, do it VariantKit-native: a "Save snapshot" action + named snapshot chips you can
-switch between, with Finalize acting on the active snapshot (and the decision optionally
-recording the runner-ups as "alternatives considered"). **Not on the v1 path** — today, to
-compare two tunings, finalize one (copy its decision), then tune and finalize the other; you
-have two decisions to compare. Revisit snapshots when the live side-by-side need is real.
+A **Snapshot** = a saved (variant + control values) state, so you can keep two tunings of one
+element (Slab/12/green vs Inverse/4/amber) and pick one. This is DialKit's **preset toolbar**
+(the ≡+ "add" and the Version dropdown), reused: because the variant is itself a control, a
+preset captures variant+values, and DialKit restores them atomically on switch. Finalize acts
+on the **active** snapshot. So: tune → ≡+ to snapshot → tune differently → switch between them
+→ Finalize the winner. (We hide only the redundant Copy button, not the preset toolbar.)
 
 ## 3. `decision.json` schema
 

@@ -25,14 +25,23 @@ If missing, set it up from the project root:
 npx github:deepshal99/variantkit
 ```
 
-That installs `dialkit motion`, adds `buildDecision.ts` + `AGENT.md`, and a rules pointer.
-Also ensure the panel host exists once in the app root (sibling of the app, not a wrapper):
+That installs `dialkit motion` + the runtime (`buildDecision`, `configs`, `react` Studio
+helper, `dialkit-clean.css`, `dialkit-dark.css`, `motion.css`), `AGENT.md`, and a rules pointer.
+Ensure the panel host + stylesheets are set up once in the app root (DialRoot is a sibling,
+not a wrapper):
 
 ```tsx
 import { DialRoot } from 'dialkit'
 import 'dialkit/styles.css'
+import './variantkit/dialkit-clean.css' // hide redundant copy button + dividers (keeps snapshots)
+import './variantkit/dialkit-dark.css'  // optional dark palette; set data-theme="dark" on .dialkit-root
+import './variantkit/motion.css'        // stagger, press feedback, easings, reduced-motion
 // render <App /> and <DialRoot /> as siblings
 ```
+
+The `Studio` helper handles finalize feedback in-button (the button morphs to "✓ Copied"),
+so no toast is needed. **Snapshots:** the panel's preset toolbar (≡+ / Version) saves a tuned
+variant — use it to keep two tunings and switch between them; Finalize acts on the active one.
 
 If you cannot run the installer (offline), you can still scaffold using the recipe below; add
 `dialkit motion` to deps and copy `buildDecision.ts` from the variantkit repo when possible.

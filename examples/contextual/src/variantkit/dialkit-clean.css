@@ -1,18 +1,15 @@
 /* VariantKit panel cleanup for DialKit.
-   - Hide the preset toolbar (Add preset / Version dropdown / Copy parameters). VariantKit's
-     model is variants + Finalize; DialKit's generic presets are redundant and confusing.
-   - No divider directly under the panel title (above the first element).
-   - No divider under the last folder, so the panel ends clean.
-   (Dividers BETWEEN elements stay — they separate the folders.) */
-.dialkit-root .dialkit-panel-toolbar {
+   - Hide only the "Copy parameters" clipboard button (redundant with Finalize). The preset
+     toolbar STAYS — it's VariantKit's snapshot mechanism (save a tuned variant, switch, then
+     finalize the active one). See AGENT.md "Snapshots".
+   - Remove folder/header dividers so the panel reads on spacing alone, like DialKit's own UI. */
+.dialkit-root [title='Copy parameters'] {
   display: none !important;
 }
 .dialkit-root .dialkit-panel-header {
   border-bottom: none !important;
 }
-.dialkit-root .dialkit-folder:not(.dialkit-folder-root):first-of-type {
+.dialkit-root .dialkit-folder {
   border-top: none !important;
-}
-.dialkit-root .dialkit-folder:last-child {
   border-bottom: none !important;
 }

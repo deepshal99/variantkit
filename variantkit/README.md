@@ -41,13 +41,24 @@ handles `deslop`. (Per-project, still run `init` once for the runtime.)
 
 ## What's in here
 
-- `buildDecision.ts` — the only runtime file (pure; override diff + prune list + clipboard).
-- `init.mjs` — the per-project installer.
+- `buildDecision.ts` — pure core (override diff + prune list + clipboard).
+- `configs.ts` — contextual control presets per element type (`panelConfig`/`defaultsOf`/`regOf`).
+- `react.tsx` — the `Studio` helper: one panel, a folder per element, finalize routing,
+  focus-on-hover, and the in-button "✓ Copied" finalize feedback.
+- `dialkit-clean.css` — hide the redundant copy button + dividers (keeps the preset/snapshot toolbar).
+- `dialkit-dark.css` — cool, crisp dark palette (DialKit ships light only).
+- `motion.css` — staggered entrances, press feedback, custom easings, reduced-motion.
+- `init.mjs` — the per-project installer (copies all of the above).
 - `skill/SKILL.md` — the global Claude Code skill.
-- `../AGENT.md` — the contract: when to offer variants, the file-per-variant convention, the
-  decision schema, the prune algorithm, and the deslop rules.
+- `../AGENT.md` — the contract; `../NAMING.md` — the vocabulary.
+
+## Concepts
+
+**Element** → **variants** (structural takes) → **controls** (its contextual **configuration**)
+→ keep **snapshots** to compare two tunings (DialKit's preset toolbar) → **finalize** → a
+**decision** → the agent **prunes** losers. Full glossary in `../NAMING.md`.
 
 ## Future (not built yet)
 
-`npx variantkit init` after an npm publish; the custom VariantKit panel (the UI/UX spec);
-the dev-server decision plugin; MCP. See the repo's `TODOS.md`.
+`npx variantkit init` after an npm publish; the dev-server decision plugin; MCP. See the
+repo's `TODOS.md`.
