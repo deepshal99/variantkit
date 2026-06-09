@@ -32,7 +32,7 @@ function stage(dark: boolean, child: ReactElement): ReactElement {
 }
 
 export function renderCard(variant: string, v: V): ReactElement {
-  const dark = String(v.theme) === 'dark'
+  const dark = !!v.darkMode
   const radius = Number(v.radius), padding = Number(v.padding), accent = String(v.accent)
   const surface = dark ? '#1a1917' : '#f6f4ef'
   const text = dark ? '#ede8df' : '#1a1a1a'
@@ -52,7 +52,7 @@ export function renderCard(variant: string, v: V): ReactElement {
 }
 
 export function renderButton(variant: string, v: V): ReactElement {
-  const dark = String(v.theme) === 'dark'
+  const dark = !!v.darkMode
   const accent = String(v.accent), size = String(v.size)
   const pad: Record<string, string> = { sm: '8px 14px', md: '11px 20px', lg: '15px 28px' }
   const fs: Record<string, number> = { sm: 13, md: 15, lg: 17 }
@@ -64,7 +64,7 @@ export function renderButton(variant: string, v: V): ReactElement {
 }
 
 export function renderHero(variant: string, v: V): ReactElement {
-  const accent = String(v.accent), align = String(v.align) as 'left' | 'center', dark = String(v.theme) === 'dark'
+  const accent = String(v.accent), align = String(v.align) as 'left' | 'center', dark = !!v.darkMode
   const split = variant === 'split', minimal = variant === 'minimal'
   return (
     <div style={{ ...morph, width: 620, maxWidth: '100%', borderRadius: 16, padding: minimal ? '36px 32px' : '52px 40px', background: dark ? '#141311' : '#fbfaf8', border: `1px solid ${dark ? '#2a2723' : '#e7e5e1'}`, color: dark ? '#ede8df' : '#1a1a1a', fontFamily: sans, display: split ? 'grid' : 'block', gridTemplateColumns: split ? '1.4fr 1fr' : undefined, gap: split ? 28 : 0, alignItems: 'center', textAlign: split ? 'left' : align }}>
@@ -80,7 +80,7 @@ export function renderHero(variant: string, v: V): ReactElement {
 }
 
 export function renderBadge(variant: string, v: V): ReactElement {
-  const dark = String(v.theme) === 'dark'
+  const dark = !!v.darkMode
   const accent = String(v.accent), size = String(v.size)
   const soft = variant === 'soft', outline = variant === 'outline'
   const pad = size === 'md' ? '5px 12px' : '3px 9px'

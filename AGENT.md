@@ -97,10 +97,10 @@ action }`. Choose `type` by what you're building. Built-in presets (`variantkit/
 
 | type | controls it exposes |
 |------|---------------------|
-| `card` | radius, padding, accent, shadow, theme |
-| `button` | radius, size, weight, accent, label, fullWidth, theme |
-| `hero` | eyebrow, headingSize, align, theme, accent |
-| `badge` | radius, size, uppercase, label, accent, theme |
+| `card` | radius, padding, accent, shadow, darkMode |
+| `button` | radius, size, weight, accent, label, fullWidth, darkMode |
+| `hero` | eyebrow, headingSize, align, darkMode, accent |
+| `badge` | radius, size, uppercase, label, accent, darkMode |
 | `input` | radius, size, label, placeholder, accent |
 | `nav` | gap, sticky, accent |
 | `banner` | radius, align, dismissible, accent |
@@ -109,8 +109,10 @@ action }`. Choose `type` by what you're building. Built-in presets (`variantkit/
 | `tabs` | size, gap, accent, transition (spring) |
 | `generic` | radius, accent (fallback) |
 
-`theme` (light/dark) suits any element a design system ships in both modes. `transition`
-(DialKit's spring editor) belongs only on motion elements (toast, tabs) — not static ones.
+`darkMode` (a boolean → segmented Off|On toggle) suits any element a design system ships in
+both modes. Use a boolean for two-state choices so DialKit renders a segmented toggle; `select`
+always renders a dropdown. `transition` (DialKit's spring editor) belongs only on motion
+elements (toast, tabs) — not static ones.
 
 If none fit, pass a custom config object instead of a preset — same shape (`variant` select +
 your controls + `finalize` action). Add a new preset to `configs.ts` when an element type

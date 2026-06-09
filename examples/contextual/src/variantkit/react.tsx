@@ -216,7 +216,11 @@ export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
           btn.className = 'vk-theme-toggle'
           btn.type = 'button'
           btn.setAttribute('aria-label', 'Toggle panel theme')
+          // Absolute, just LEFT of DialKit's settings icon (which sits absolute at right:12).
           Object.assign(btn.style, {
+            position: 'absolute',
+            top: '7px',
+            right: '40px',
             width: '26px',
             height: '26px',
             display: 'inline-grid',
@@ -226,7 +230,7 @@ export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
             borderRadius: '7px',
             cursor: 'pointer',
             color: 'var(--dial-text-secondary)',
-            flex: '0 0 auto',
+            zIndex: '2',
           } satisfies Partial<CSSStyleDeclaration>)
           const stop = (e: Event) => e.stopPropagation()
           btn.addEventListener('pointerdown', stop)
