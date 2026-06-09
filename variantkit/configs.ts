@@ -27,6 +27,7 @@ export const elementConfigs: Record<string, PanelConfig> = {
     padding: [24, 12, 48],
     accent: ACCENT,
     shadow: { type: 'select', options: ['none', 'soft', 'strong'], default: 'soft' },
+    transition: { type: 'spring', visualDuration: 0.35, bounce: 0.2 }, // spring graph editor
   },
   button: {
     radius: [10, 0, 24],
@@ -41,7 +42,9 @@ export const elementConfigs: Record<string, PanelConfig> = {
     headingSize: [48, 28, 72],
     align: { type: 'select', options: ['left', 'center'], default: 'center' },
     bg: { type: 'select', options: ['light', 'dark'], default: 'light' },
+    centered: true, // boolean → segmented Off|On toggle
     accent: ACCENT,
+    transition: { type: 'spring', visualDuration: 0.4, bounce: 0.25 }, // spring graph editor
   },
   badge: {
     radius: [999, 0, 999],

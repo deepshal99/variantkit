@@ -10,6 +10,7 @@
 // Requires <DialRoot/> mounted once in the app root (DialKit), plus dialkit/styles.css and
 // (recommended) ./dialkit-clean.css.
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
+import { motion, AnimatePresence, MotionConfig } from 'motion/react'
 import { useDialKit } from 'dialkit'
 import { panelConfig, defaultsOf, regOf } from './configs'
 import { buildDecision, copyDecision, type ParamValue } from './buildDecision'
@@ -97,11 +98,13 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
   }, [focused, focusOnHover])
 
   return (
+    <MotionConfig reducedMotion="user">
     <div style={{ display: 'flex', flexDirection: 'column', gap: 56, alignItems: 'center' }}>
       {elements.map((e, i) => {
         const slice = all[e.name]
         if (!slice) return null
         const ring = focusOnHover && focused === e.name
+        const variant = String(slice.variant)
         return (
           <section
             key={e.name}
@@ -110,17 +113,65 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
             style={{
               // @ts-expect-error CSS custom property for stagger index
               '--vk-i': i,
+              position: 'relative',
               textAlign: 'center',
               borderRadius: 18,
-              outline: ring ? '2px solid rgba(31,94,84,.5)' : '2px solid transparent',
-              outlineOffset: 10,
-              transition: 'outline-color 200ms cubic-bezier(0.23,1,0.32,1)',
+              // Soft glow on focus (frequent action → subtle, no bounce).
+              boxShadow: ring ? '0 0 0 2px rgba(31,94,84,.45), 0 10px 40px rgba(31,94,84,.12)' : '0 0 0 0 transparent',
+              transition: 'box-shadow 220ms cubic-bezier(0.23,1,0.32,1)',
             }}
           >
-            {e.render(String(slice.variant), slice) as ReactElement}
+            {/* Variant switch is frequent → keep the settle tiny and fast. */}
+            <motion.div
+              key={variant}
+              initial={{ opacity: 0, scale: 0.99 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+            >
+              {e.render(variant, slice) as ReactElement}
+            </motion.div>
+
+            {/* Finalize is occasional → it earns a springy check badge. */}
+            <AnimatePresence>
+              {done[e.name] && (
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.7, opacity: 0 }}
+                  transition={{ type: 'spring', visualDuration: 0.42, bounce: 0.5 }}
+                  style={{
+                    position: 'absolute',
+                    top: -14,
+                    right: -14,
+                    width: 38,
+                    height: 38,
+                    borderRadius: 999,
+                    background: '#1F5E54',
+                    display: 'grid',
+                    placeItems: 'center',
+                    boxShadow: '0 8px 22px rgba(31,94,84,.4)',
+                    zIndex: 5,
+                  }}
+                >
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                    <motion.path
+                      d="M4 12.5l5 5L20 6.5"
+                      stroke="#fff"
+                      strokeWidth="2.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ delay: 0.1, duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+                    />
+                  </svg>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </section>
         )
       })}
     </div>
+    </MotionConfig>
   )
 }
