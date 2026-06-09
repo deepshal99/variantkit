@@ -134,6 +134,34 @@ const all = useDialKit('VariantKit', combined, {
 `_collapsed: true` starts a folder closed (first one open). Result: one panel, a section per
 element, each with its contextual controls and its own Finalize. See `examples/contextual`.
 
+**Easiest path — the `Studio` helper.** Don't hand-write the wiring above; use it:
+
+```tsx
+import { Studio, type ElementDef } from './variantkit/react'
+
+const ELEMENTS: ElementDef[] = [
+  { name: 'PricingCard', type: 'card', keys: ['slab','ledger','inverse'], render: (variant, v) => <Card variant={variant} {...v} /> },
+  // ...more elements
+]
+<Studio elements={ELEMENTS} focusOnHover />   // one panel, folders, finalize routing, focus
+```
+
+`focusOnHover` expands the folder of the element you hover and rings it — so the panel always
+shows "the element you're editing." For a SINGLE element, just pass one entry (one folder,
+nothing extra). DialKit's `<DialRoot/>` must be mounted once in the app root.
+
+### Scope controls to what's actually being built
+
+Configs are contextual to the **specific thing requested**, not a fixed menu:
+- "variants of a button" → ONE element, `button` controls only (size/weight/label/radius).
+- "a hero section" → it has sub-parts; expose what matters (heading size, align, bg, eyebrow,
+  CTA). Use a custom config (or nested folders) when one element has many tunable parts.
+- "a table design" → many contextual controls (density, striped, header weight, row height,
+  border style, zebra…). Group related ones into nested folders inside that element's config.
+
+Pick or extend the preset (`configs.ts`) so the panel shows only relevant controls. More is
+not better — show what this element actually needs, nothing it doesn't.
+
 ### Hide the redundant copy button
 
 DialKit's panel has a native "Copy parameters" clipboard button. VariantKit's Finalize already

@@ -1,0 +1,113 @@
+// VariantKit React helper — one reusable component instead of hand-writing a studio per
+// project. Folds N elements into ONE DialKit panel (a folder each), routes each element's
+// finalize, and optionally focuses the folder of the element you hover.
+//
+//   import { Studio } from './variantkit/react'
+//   <Studio elements={[
+//     { name: 'Hero', type: 'hero', keys: ['centered','split','minimal'], render: (variant, v) => <Hero .../> },
+//   ]} focusOnHover />
+//
+// Requires <DialRoot/> mounted once in the app root (DialKit), plus dialkit/styles.css and
+// (recommended) ./dialkit-clean.css.
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
+import { useDialKit } from 'dialkit'
+import { panelConfig, defaultsOf, regOf } from './configs'
+import { buildDecision, copyDecision, type ParamValue } from './buildDecision'
+
+export interface ElementDef {
+  /** Component name — becomes the folder title and the decision's component. */
+  name: string
+  /** Contextual preset key (card, button, hero, badge, input, table, …) or 'generic'. */
+  type: string
+  /** Variant keys for this element. */
+  keys: string[]
+  /** Render the active variant from its resolved values. */
+  render: (variant: string, values: Record<string, ParamValue>) => ReactNode
+  /** Optional explicit config override (skip the preset). */
+  config?: Record<string, unknown>
+}
+
+export interface StudioProps {
+  elements: ElementDef[]
+  /** Panel title. */
+  name?: string
+  /** Expand the folder of the element you hover; ring the focused element. */
+  focusOnHover?: boolean
+  /** Called after an element is finalized (decision already copied to clipboard). */
+  onFinalize?: (decision: ReturnType<typeof buildDecision>) => void
+}
+
+const cfgFor = (e: ElementDef) =>
+  (e.config ?? panelConfig(e.type, e.keys, { component: e.name })) as Record<string, ParamValue>
+
+// Match DialKit's humanized folder title ("Pricing Card") back to an element name.
+const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase()
+
+function focusFolder(name: string | null) {
+  if (!name) return
+  // NEVER touch the root folder — clicking its header collapses the whole panel. Only the
+  // per-element folders (the ones with a title) are toggled.
+  document.querySelectorAll('.dialkit-folder:not(.dialkit-folder-root)').forEach((f) => {
+    const title = f.querySelector('.dialkit-folder-title')?.textContent?.trim()
+    if (!title) return
+    const header = f.querySelector<HTMLElement>('.dialkit-folder-header')
+    if (!header) return
+    const expanded = !!f.querySelector('.dialkit-folder-content')
+    const shouldExpand = norm(title) === norm(name)
+    if (shouldExpand && !expanded) header.click()
+    else if (!shouldExpand && expanded) header.click()
+  })
+}
+
+export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize }: StudioProps) {
+  const [focused, setFocused] = useState<string | null>(null)
+  const elsRef = useRef(elements)
+  elsRef.current = elements
+
+  // One combined config: a folder per element, first open and the rest collapsed.
+  const combined: Record<string, unknown> = {}
+  elements.forEach((e, i) => {
+    combined[e.name] = { ...cfgFor(e), _collapsed: i !== 0 }
+  })
+
+  const all = useDialKit(name, combined as never, {
+    onAction: (path: string) => {
+      const elName = path.split('.')[0]
+      const e = elsRef.current.find((x) => x.name === elName)
+      if (!e) return
+      const slice = (all as Record<string, Record<string, ParamValue>>)[elName]
+      const decision = buildDecision(elName, slice, defaultsOf(cfgFor(e)), regOf(e.keys))
+      copyDecision(decision)
+      onFinalize?.(decision)
+    },
+  }) as Record<string, Record<string, ParamValue>>
+
+  useEffect(() => {
+    if (focusOnHover) focusFolder(focused)
+  }, [focused, focusOnHover])
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 56, alignItems: 'center' }}>
+      {elements.map((e) => {
+        const slice = all[e.name]
+        if (!slice) return null
+        const ring = focusOnHover && focused === e.name
+        return (
+          <section
+            key={e.name}
+            onMouseEnter={focusOnHover ? () => setFocused(e.name) : undefined}
+            style={{
+              textAlign: 'center',
+              borderRadius: 18,
+              outline: ring ? '2px solid rgba(31,94,84,.45)' : '2px solid transparent',
+              outlineOffset: 10,
+              transition: 'outline-color .2s ease',
+            }}
+          >
+            {e.render(String(slice.variant), slice) as ReactElement}
+          </section>
+        )
+      })}
+    </div>
+  )
+}

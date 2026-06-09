@@ -64,6 +64,30 @@ export const elementConfigs: Record<string, PanelConfig> = {
     dismissible: true,
     accent: ACCENT,
   },
+  table: {
+    density: { type: 'select', options: ['compact', 'cozy', 'comfortable'], default: 'cozy' },
+    striped: true,
+    radius: [10, 0, 20],
+    headerWeight: [600, 400, 800],
+    accent: ACCENT,
+  },
+  avatar: {
+    size: [40, 24, 96],
+    radius: [999, 0, 999],
+    ring: false,
+    accent: ACCENT,
+  },
+  toast: {
+    radius: [10, 0, 24],
+    position: { type: 'select', options: ['top', 'bottom'], default: 'bottom' },
+    duration: [3000, 1000, 8000],
+    accent: ACCENT,
+  },
+  tabs: {
+    size: { type: 'select', options: ['sm', 'md', 'lg'], default: 'md' },
+    gap: [24, 8, 48],
+    accent: ACCENT,
+  },
 }
 
 const RESERVED = new Set(['variant', 'finalize'])
