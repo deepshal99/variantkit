@@ -1,23 +1,16 @@
-// Contextual config: a pricing card exposes radius, accent, padding + its own variants.
+// Contextual config: a pricing card uses the 'card' preset (radius, padding, accent) — the
+// agent now picks this preset by element type instead of hand-listing controls.
 import { useDialKit } from 'dialkit'
 import { buildDecision, copyDecision, type ParamValue } from '../core/buildDecision'
+import { panelConfig, defaultsOf, regOf } from '../variantkit/configs'
 
-const VARIANTS = ['ledger', 'slab', 'inverse']
-const DEFAULTS: Record<string, ParamValue> = { radius: 18, accent: '#1F5E54', padding: 28 }
-const reg = Object.fromEntries(VARIANTS.map((k) => [k, 1]))
+const KEYS = ['slab', 'ledger', 'inverse']
+const cfg = panelConfig('card', KEYS, { component: 'PricingCard' })
 
 export default function PricingCard() {
-  const v = useDialKit(
-    'PricingCard',
-    {
-      variant: { type: 'select', options: VARIANTS, default: 'slab' },
-      radius: [18, 0, 32],
-      accent: '#1F5E54',
-      padding: [28, 12, 44],
-      finalize: { type: 'action', label: 'Finalize PricingCard' },
-    },
-    { onAction: () => copyDecision(buildDecision('PricingCard', v as Record<string, ParamValue>, DEFAULTS, reg)) },
-  ) as Record<string, ParamValue>
+  const v = useDialKit('PricingCard', cfg, {
+    onAction: () => copyDecision(buildDecision('PricingCard', v as Record<string, ParamValue>, defaultsOf(cfg), regOf(KEYS))),
+  }) as Record<string, ParamValue>
 
   const variant = String(v.variant)
   const radius = Number(v.radius)

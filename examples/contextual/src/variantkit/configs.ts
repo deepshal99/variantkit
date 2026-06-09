@@ -1,0 +1,102 @@
+// VariantKit — contextual config presets per element type.
+//
+// The panel should show controls that fit the ELEMENT being edited: a hero gets align /
+// heading size / background; a button gets size / weight / label; a card gets radius /
+// padding. When the agent scaffolds a variant set, it picks the preset for the element type
+// so the panel is contextual, not a generic radius/accent for everything.
+//
+// Usage in a component's index.tsx (built on DialKit):
+//   const cfg = panelConfig('button', ['solid','outline','ghost'])
+//   const v = useDialKit('Button', cfg, { onAction: () =>
+//     copyDecision(buildDecision('Button', v, defaultsOf(cfg), regOf(['solid','outline','ghost']))) })
+
+// Loose config shape — these are DialKit config objects; we don't import DialKit's types here
+// so the presets stay framework-light. `any` keeps the result assignable to DialKit's own
+// config type at the useDialKit call site without coupling this file to DialKit.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Control = any
+export type PanelConfig = Record<string, Control>
+
+const ACCENT = '#1F5E54'
+
+// Per-type CONTROL presets (the params only — variant select + finalize are added by panelConfig).
+export const elementConfigs: Record<string, PanelConfig> = {
+  generic: { radius: [12, 0, 32], accent: ACCENT },
+  card: { radius: [12, 0, 32], padding: [24, 12, 48], accent: ACCENT },
+  button: {
+    radius: [10, 0, 24],
+    size: { type: 'select', options: ['sm', 'md', 'lg'], default: 'md' },
+    weight: [600, 400, 800],
+    accent: ACCENT,
+    label: 'Get started',
+  },
+  hero: {
+    align: { type: 'select', options: ['left', 'center'], default: 'center' },
+    headingSize: [48, 28, 72],
+    bg: { type: 'select', options: ['light', 'dark'], default: 'light' },
+    accent: ACCENT,
+  },
+  badge: {
+    radius: [999, 0, 999],
+    size: { type: 'select', options: ['sm', 'md'], default: 'sm' },
+    uppercase: true,
+    accent: ACCENT,
+  },
+  input: {
+    radius: [8, 0, 20],
+    size: { type: 'select', options: ['sm', 'md', 'lg'], default: 'md' },
+    accent: ACCENT,
+    label: 'Email',
+  },
+  nav: {
+    gap: [24, 8, 48],
+    sticky: true,
+    accent: ACCENT,
+  },
+  banner: {
+    radius: [12, 0, 28],
+    align: { type: 'select', options: ['left', 'center'], default: 'left' },
+    dismissible: true,
+    accent: ACCENT,
+  },
+}
+
+const RESERVED = new Set(['variant', 'finalize'])
+
+// Assemble the full DialKit config for a variant set: variant select + the type's controls +
+// a finalize action. Unknown types fall back to `generic`.
+export function panelConfig(
+  type: string,
+  variantKeys: string[],
+  opts?: { finalizeLabel?: string; component?: string },
+): PanelConfig {
+  const params = elementConfigs[type] ?? elementConfigs.generic
+  return {
+    variant: { type: 'select', options: variantKeys, default: variantKeys[0] },
+    ...params,
+    finalize: { type: 'action', label: opts?.finalizeLabel ?? `Finalize ${opts?.component ?? type}` },
+  }
+}
+
+// Resolve the frozen default value of each control — feeds buildDecision's `defaults`.
+export function defaultsOf(cfg: PanelConfig): Record<string, number | string | boolean> {
+  const out: Record<string, number | string | boolean> = {}
+  for (const [key, c] of Object.entries(cfg)) {
+    if (RESERVED.has(key)) continue
+    if (typeof c === 'number' || typeof c === 'string' || typeof c === 'boolean') {
+      out[key] = c
+    } else if (Array.isArray(c)) {
+      out[key] = c[0] as number
+    } else if (c && typeof c === 'object') {
+      const o = c as { type?: string; default?: unknown }
+      if (o.type === 'action') continue
+      if (o.default !== undefined) out[key] = o.default as number | string | boolean
+    }
+  }
+  return out
+}
+
+// Convenience: registry object from variant keys, for buildDecision's prune computation.
+export function regOf(variantKeys: string[]): Record<string, true> {
+  return Object.fromEntries(variantKeys.map((k) => [k, true]))
+}
