@@ -182,9 +182,9 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
 // Requires dialkit-dark.css imported. Returns { theme, setTheme } if you also want a custom UI.
 
 const MOON =
-  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+  '<svg class="vk-swap" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
 const SUN =
-  '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
+  '<svg class="vk-swap" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
 
 export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -210,28 +210,17 @@ export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
         if (el.getAttribute('data-theme') !== themeRef.current) el.setAttribute('data-theme', themeRef.current)
       })
       document.querySelectorAll<HTMLElement>('.dialkit-panel-header').forEach((hdr) => {
-        let btn = hdr.querySelector<HTMLButtonElement>('.vk-theme-toggle')
+        const titleRow = hdr.querySelector<HTMLElement>('.dialkit-folder-header-top') ?? hdr
+        // Keep exactly one toggle (hot-reload can leave a stale node behind).
+        const existing = titleRow.querySelectorAll<HTMLButtonElement>('.vk-theme-toggle')
+        for (let i = 1; i < existing.length; i++) existing[i].remove()
+        let btn = existing[0] ?? null
         if (!btn) {
           btn = document.createElement('button')
+          // Absolute, just left of DialKit's settings icon (which is absolute at right:12).
           btn.className = 'vk-theme-toggle'
           btn.type = 'button'
           btn.setAttribute('aria-label', 'Toggle panel theme')
-          // Absolute, just LEFT of DialKit's settings icon (which sits absolute at right:12).
-          Object.assign(btn.style, {
-            position: 'absolute',
-            top: '7px',
-            right: '40px',
-            width: '26px',
-            height: '26px',
-            display: 'inline-grid',
-            placeItems: 'center',
-            border: 'none',
-            background: 'transparent',
-            borderRadius: '7px',
-            cursor: 'pointer',
-            color: 'var(--dial-text-secondary)',
-            zIndex: '2',
-          } satisfies Partial<CSSStyleDeclaration>)
           const stop = (e: Event) => e.stopPropagation()
           btn.addEventListener('pointerdown', stop)
           btn.addEventListener('mousedown', stop)
@@ -239,13 +228,11 @@ export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
             e.stopPropagation()
             flip()
           })
-          // Place it in the title row (top-right, by the settings icon), not after the toolbar.
-          const titleRow = hdr.querySelector('.dialkit-folder-header-top') ?? hdr
           titleRow.appendChild(btn)
         }
         if (btn.dataset.vkTheme !== themeRef.current) {
           btn.dataset.vkTheme = themeRef.current
-          btn.innerHTML = themeRef.current === 'dark' ? SUN : MOON
+          btn.innerHTML = themeRef.current === 'dark' ? SUN : MOON // fresh <svg class="vk-swap"> animates in
         }
       })
     }
@@ -263,7 +250,13 @@ export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
       })
     })
 
+    // Delightful theme switch: add `.vk-theming` so the panel cross-fades its colors (the
+    // class scopes a transition that only exists during the switch — see motion.css), then
+    // flip the value via sync(). First mount sets the same value, so nothing animates.
+    const panels = document.querySelectorAll('.dialkit-root')
+    panels.forEach((p) => p.classList.add('vk-theming'))
     sync()
+    const settle = setTimeout(() => panels.forEach((p) => p.classList.remove('vk-theming')), 420)
     mo.observe(document.body, { childList: true, subtree: true })
     try {
       localStorage.setItem('vk-theme', theme)
@@ -272,6 +265,7 @@ export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
     }
     return () => {
       if (frame) cancelAnimationFrame(frame)
+      clearTimeout(settle)
       mo.disconnect()
     }
   }, [theme])

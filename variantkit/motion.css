@@ -32,6 +32,43 @@
 /* Finalize button label morphs to "✓ Copied" on finalize (handled in JS); keep the swap
    smooth by letting the button settle with the same easing as press. */
 
+/* ── Theme switch (light ↔ dark) — occasional action, so it earns delight ──────────────── */
+/* The panel cross-fades its colors. `.vk-theming` is added only during the switch (~420ms),
+   so this transition never slows down normal hover/interaction. */
+.dialkit-root.vk-theming,
+.dialkit-root.vk-theming *:not(.vk-theme-toggle):not(.vk-swap) {
+  transition:
+    background-color 360ms var(--vk-ease-out),
+    color 360ms var(--vk-ease-out),
+    border-color 360ms var(--vk-ease-out),
+    box-shadow 360ms var(--vk-ease-out) !important;
+}
+
+/* The sun/moon icon spins + scales in each time it swaps (fresh node → animation runs once). */
+.vk-theme-toggle .vk-swap {
+  animation: vk-icon-swap 420ms var(--vk-ease-out);
+}
+@keyframes vk-icon-swap {
+  from {
+    opacity: 0;
+    transform: rotate(-120deg) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialkit-root.vk-theming,
+  .dialkit-root.vk-theming * {
+    transition: background-color 200ms ease, color 200ms ease !important;
+  }
+  .vk-theme-toggle .vk-swap {
+    animation: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .vk-section {
     animation: vk-fade 200ms ease forwards;
