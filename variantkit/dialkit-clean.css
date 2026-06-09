@@ -1,0 +1,6 @@
+/* Hide DialKit's "Copy parameters" (clipboard) button — redundant with VariantKit's Finalize,
+   which builds the real decision (winner + diff + prune). Presets stay (Add preset + the
+   Version dropdown share styling but only Copy is title="Copy parameters"). */
+.dialkit-root [title='Copy parameters'] {
+  display: none !important;
+}

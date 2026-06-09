@@ -58,10 +58,10 @@ if (SKIP_INSTALL) {
 }
 
 // 2. runtime (buildDecision.ts + configs.ts)
-head('2. runtime (buildDecision.ts, configs.ts)')
+head('2. runtime (buildDecision, configs, panel css)')
 const srcDir = existsSync(join(target, 'src')) ? join(target, 'src', 'variantkit') : join(target, 'variantkit')
 if (!DRY) mkdirSync(srcDir, { recursive: true })
-for (const file of ['buildDecision.ts', 'configs.ts']) {
+for (const file of ['buildDecision.ts', 'configs.ts', 'dialkit-clean.css', 'dialkit-dark.css']) {
   const from = join(SELF, file)
   if (!existsSync(from)) fail(`missing source: ${from}`)
   const to = join(srcDir, file)
@@ -132,9 +132,9 @@ if (WITH_SKILL) {
 }
 
 // done
-const importPath = relative(join(target, 'src'), buildDest).replace(/\.ts$/, '') || './variantkit/buildDecision'
+const importPath = relative(join(target, 'src'), join(srcDir, 'buildDecision')).replace(/^(?!\.)/, './')
 head('done. next:')
-log(`add <DialRoot/> as a sibling of your app root and import 'dialkit/styles.css'`)
-log(`in a component, useDialKit with a 'variant' select + a 'finalize' action,`)
-log(`and call buildDecision/copyDecision from '${importPath.startsWith('.') ? importPath : './' + importPath}'`)
+log(`in your app root: add <DialRoot/> as a sibling and import 'dialkit/styles.css',`)
+log(`then import '${importPath.replace('buildDecision', 'dialkit-clean.css')}' (hides the redundant copy button).`)
+log(`build a variant set per AGENT.md; for multiple elements use ONE useDialKit with a folder each.`)
 log(`then ask your AI for "three takes on <component>" — it will scaffold a variant set.`)

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { DialRoot } from 'dialkit'
 import 'dialkit/styles.css'
 import './dialkit-dark.css'
+import './dialkit-clean.css'
 import App from './App'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

@@ -107,6 +107,41 @@ If none fit, pass a custom config object instead of a preset — same shape (`va
 your controls + `finalize` action). Add a new preset to `configs.ts` when an element type
 recurs. A button must never show a card's `padding`; a hero must show `align`/`headingSize`.
 
+### Multiple elements → ONE panel (folders), never many
+
+DialKit renders one panel per `useDialKit` call, so calling it from each component clutters
+the screen with stacked panels. For 2+ elements in play, make a **single** `useDialKit` call
+whose config has **one folder per element** (a nested object becomes a folder). Route each
+folder's finalize via `onAction(path)` — `path` is dot-notation, e.g. `PricingCard.finalize`.
+
+```tsx
+const ELEMENTS = [
+  { name: 'Hero', type: 'hero', keys: ['centered','split','minimal'] },
+  { name: 'PricingCard', type: 'card', keys: ['slab','ledger','inverse'] },
+]
+const combined = Object.fromEntries(
+  ELEMENTS.map((e, i) => [e.name, { ...panelConfig(e.type, e.keys, { component: e.name }), _collapsed: i !== 0 }]),
+)
+const all = useDialKit('VariantKit', combined, {
+  onAction: (path) => {
+    const e = ELEMENTS.find((x) => x.name === path.split('.')[0])!
+    copyDecision(buildDecision(e.name, all[e.name], defaultsOf(panelConfig(e.type, e.keys)), regOf(e.keys)))
+  },
+})
+// values are nested: all.Hero.headingSize, all.PricingCard.radius, ...
+```
+
+`_collapsed: true` starts a folder closed (first one open). Result: one panel, a section per
+element, each with its contextual controls and its own Finalize. See `examples/contextual`.
+
+### Hide the redundant copy button
+
+DialKit's panel has a native "Copy parameters" clipboard button. VariantKit's Finalize already
+produces the real decision (winner + diff + prune), so hide the clipboard: import
+`variantkit/dialkit-clean.css` once. Optional dark theme: import `variantkit/dialkit-dark.css`
+and set `data-theme="dark"` on `.dialkit-root`. (DialKit presets/Versions stay — they're a
+useful "save a tuned snapshot" feature, distinct from variants.)
+
 ## 3. `decision.json` schema
 
 Finalize writes one decision per component (clipboard in v0; file later).

@@ -22,17 +22,24 @@ const ACCENT = '#1F5E54'
 // Per-type CONTROL presets (the params only — variant select + finalize are added by panelConfig).
 export const elementConfigs: Record<string, PanelConfig> = {
   generic: { radius: [12, 0, 32], accent: ACCENT },
-  card: { radius: [12, 0, 32], padding: [24, 12, 48], accent: ACCENT },
+  card: {
+    radius: [12, 0, 32],
+    padding: [24, 12, 48],
+    accent: ACCENT,
+    shadow: { type: 'select', options: ['none', 'soft', 'strong'], default: 'soft' },
+  },
   button: {
     radius: [10, 0, 24],
     size: { type: 'select', options: ['sm', 'md', 'lg'], default: 'md' },
     weight: [600, 400, 800],
     accent: ACCENT,
     label: 'Get started',
+    fullWidth: false,
   },
   hero: {
-    align: { type: 'select', options: ['left', 'center'], default: 'center' },
+    eyebrow: 'New',
     headingSize: [48, 28, 72],
+    align: { type: 'select', options: ['left', 'center'], default: 'center' },
     bg: { type: 'select', options: ['light', 'dark'], default: 'light' },
     accent: ACCENT,
   },
@@ -40,19 +47,17 @@ export const elementConfigs: Record<string, PanelConfig> = {
     radius: [999, 0, 999],
     size: { type: 'select', options: ['sm', 'md'], default: 'sm' },
     uppercase: true,
+    label: 'Beta',
     accent: ACCENT,
   },
   input: {
     radius: [8, 0, 20],
     size: { type: 'select', options: ['sm', 'md', 'lg'], default: 'md' },
-    accent: ACCENT,
     label: 'Email',
-  },
-  nav: {
-    gap: [24, 8, 48],
-    sticky: true,
+    placeholder: 'you@company.com',
     accent: ACCENT,
   },
+  nav: { gap: [24, 8, 48], sticky: true, accent: ACCENT },
   banner: {
     radius: [12, 0, 28],
     align: { type: 'select', options: ['left', 'center'], default: 'left' },
