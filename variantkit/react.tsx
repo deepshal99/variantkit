@@ -202,9 +202,13 @@ export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
   useEffect(() => {
     const flip = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
 
+    // The actual DOM work. Guarded two ways so it can NEVER cause a runaway observer loop:
+    // (1) it only writes when something actually differs, (2) the observer is paused around
+    // these writes (see below) so our own mutations don't retrigger it.
     const sync = () => {
-      document.querySelectorAll('.dialkit-root').forEach((el) => el.setAttribute('data-theme', themeRef.current))
-      // inject (once) a theme toggle into each panel header, then keep its icon in sync
+      document.querySelectorAll('.dialkit-root').forEach((el) => {
+        if (el.getAttribute('data-theme') !== themeRef.current) el.setAttribute('data-theme', themeRef.current)
+      })
       document.querySelectorAll<HTMLElement>('.dialkit-panel-header').forEach((hdr) => {
         let btn = hdr.querySelector<HTMLButtonElement>('.vk-theme-toggle')
         if (!btn) {
@@ -213,7 +217,6 @@ export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
           btn.type = 'button'
           btn.setAttribute('aria-label', 'Toggle panel theme')
           Object.assign(btn.style, {
-            marginLeft: '6px',
             width: '26px',
             height: '26px',
             display: 'inline-grid',
@@ -232,21 +235,41 @@ export function useDialkitTheme(initial: 'light' | 'dark' = 'light') {
             e.stopPropagation()
             flip()
           })
-          hdr.appendChild(btn)
+          // Place it in the title row (top-right, by the settings icon), not after the toolbar.
+          const titleRow = hdr.querySelector('.dialkit-folder-header-top') ?? hdr
+          titleRow.appendChild(btn)
         }
-        btn.innerHTML = themeRef.current === 'dark' ? SUN : MOON
+        if (btn.dataset.vkTheme !== themeRef.current) {
+          btn.dataset.vkTheme = themeRef.current
+          btn.innerHTML = themeRef.current === 'dark' ? SUN : MOON
+        }
       })
     }
 
+    // Coalesce mutation bursts into one sync per frame, and pause the observer while WE write,
+    // so our own DOM changes can't re-trigger it. Belt and suspenders against the freeze.
+    let frame = 0
+    const mo = new MutationObserver(() => {
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        mo.disconnect()
+        sync()
+        mo.observe(document.body, { childList: true, subtree: true })
+      })
+    })
+
     sync()
+    mo.observe(document.body, { childList: true, subtree: true })
     try {
       localStorage.setItem('vk-theme', theme)
     } catch {
       /* no storage */
     }
-    const mo = new MutationObserver(sync)
-    mo.observe(document.body, { childList: true, subtree: true })
-    return () => mo.disconnect()
+    return () => {
+      if (frame) cancelAnimationFrame(frame)
+      mo.disconnect()
+    }
   }, [theme])
 
   return { theme, setTheme }
