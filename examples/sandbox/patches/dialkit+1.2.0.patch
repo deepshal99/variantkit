@@ -1,0 +1,32 @@
+diff --git a/node_modules/dialkit/dist/index.cjs b/node_modules/dialkit/dist/index.cjs
+index d9f4837..4bf4e6d 100644
+--- a/node_modules/dialkit/dist/index.cjs
++++ b/node_modules/dialkit/dist/index.cjs
+@@ -1006,8 +1006,9 @@ function Folder({ title, children, defaultOpen = true, isRoot = false, inline =
+         style: panelStyle,
+         onClick: !isOpen ? handleToggle : void 0,
+         "data-collapsed": isCollapsed,
+-        whileTap: !isOpen ? { scale: 0.9 } : void 0,
+-        transition: { type: "spring", visualDuration: 0.15, bounce: 0.3 },
++        whileHover: !isOpen ? { scale: 1.06, boxShadow: "0 10px 28px rgba(0,0,0,0.34)" } : void 0,
++        whileTap: !isOpen ? { scale: 0.88 } : void 0,
++        transition: isOpen ? { type: "spring", visualDuration: 0.44, bounce: 0.26 } : { type: "spring", visualDuration: 0.3, bounce: 0.14 },
+         children: folderContent
+       }
+     );
+diff --git a/node_modules/dialkit/dist/index.js b/node_modules/dialkit/dist/index.js
+index f8d8baf..7a0e7b3 100644
+--- a/node_modules/dialkit/dist/index.js
++++ b/node_modules/dialkit/dist/index.js
+@@ -966,8 +966,9 @@ function Folder({ title, children, defaultOpen = true, isRoot = false, inline =
+         style: panelStyle,
+         onClick: !isOpen ? handleToggle : void 0,
+         "data-collapsed": isCollapsed,
+-        whileTap: !isOpen ? { scale: 0.9 } : void 0,
+-        transition: { type: "spring", visualDuration: 0.15, bounce: 0.3 },
++        whileHover: !isOpen ? { scale: 1.06, boxShadow: "0 10px 28px rgba(0,0,0,0.34)" } : void 0,
++        whileTap: !isOpen ? { scale: 0.88 } : void 0,
++        transition: isOpen ? { type: "spring", visualDuration: 0.44, bounce: 0.26 } : { type: "spring", visualDuration: 0.3, bounce: 0.14 },
+         children: folderContent
+       }
+     );

@@ -3,11 +3,14 @@
 //
 //   node /path/to/variantkit/init.mjs [targetDir] [--dry-run] [--skip-install]
 //
-// Does four things (idempotent):
-//   1. npm i dialkit motion          (the runtime; skip with --skip-install)
-//   2. copy buildDecision.ts         -> <target>/src/variantkit/ (or <target>/variantkit/)
-//   3. copy AGENT.md                 -> <target>/AGENT.md (won't clobber an existing one)
-//   4. append a VariantKit pointer   -> CLAUDE.md / AGENTS.md / .cursor/rules / .cursorrules
+// Does these (idempotent):
+//   1.  npm i dialkit motion         (the runtime; skip with --skip-install)
+//   1b. ship the panel patch         -> <target>/patches/ + patch-package postinstall
+//                                       (delightful minimize/expand morph; non-fatal)
+//   2.  copy buildDecision.ts +      -> <target>/src/variantkit/ (or <target>/variantkit/)
+//       configs.ts + react.tsx + css
+//   3.  copy AGENT.md                -> <target>/AGENT.md (won't clobber an existing one)
+//   4.  append a VariantKit pointer  -> CLAUDE.md / AGENTS.md / .cursor/rules / .cursorrules
 //
 // Nothing is silent: every action is logged, every skip explains why.
 
@@ -54,6 +57,46 @@ if (SKIP_INSTALL) {
     did('installed dialkit + motion')
   } catch (e) {
     fail(`npm install failed: ${e.message}`)
+  }
+}
+
+// 1b. panel polish — ship the delightful minimize/expand morph as a patch over dialkit's dist
+// (the one thing CSS can't reach: it's a hardcoded motion spring). patch-package + a
+// postinstall hook keep it applied across reinstalls. Pinned to dialkit 1.2.0; entirely
+// non-fatal — if anything here fails the panel still works, just with DialKit's default morph.
+head('1b. panel polish (delightful minimize/expand morph)')
+const patchSrc = join(SELF, 'patches', 'dialkit+1.2.0.patch')
+if (!existsSync(patchSrc)) {
+  warn('panel patch missing — skipping (panel works, just the default morph)')
+} else {
+  const patchDest = join(target, 'patches', 'dialkit+1.2.0.patch')
+  if (!DRY) {
+    mkdirSync(dirname(patchDest), { recursive: true })
+    copyFileSync(patchSrc, patchDest)
+  }
+  did(`copy dialkit patch -> ${relative(target, patchDest)}`)
+  if (SKIP_INSTALL) {
+    log('skipped applying (--skip-install) — run `npx patch-package` to apply the morph')
+  } else if (DRY) {
+    did('run: add "postinstall":"patch-package", npm i -D patch-package, npx patch-package')
+  } else {
+    try {
+      const pkgPath = join(target, 'package.json')
+      if (existsSync(pkgPath)) {
+        const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'))
+        pkg.scripts = pkg.scripts || {}
+        if (!pkg.scripts.postinstall) pkg.scripts.postinstall = 'patch-package'
+        else if (!pkg.scripts.postinstall.includes('patch-package'))
+          pkg.scripts.postinstall = `${pkg.scripts.postinstall} && patch-package`
+        writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n')
+        did('add "postinstall": "patch-package" to package.json')
+      }
+      execSync('npm i -D patch-package', { cwd: target, stdio: 'inherit' })
+      execSync('npx patch-package', { cwd: target, stdio: 'inherit' })
+      did('applied delightful minimize/expand morph to dialkit')
+    } catch (e) {
+      warn(`could not apply panel patch (non-fatal): ${e.message}`)
+    }
   }
 }
 

@@ -19,8 +19,12 @@ npx github:deepshal99/variantkit --skill    # also install the global Claude Cod
 
 It runs `npm i dialkit motion`, drops `buildDecision.ts` into `src/variantkit/`, copies
 `AGENT.md` (the agent contract), and adds a pointer to your `CLAUDE.md` / `AGENTS.md` /
-`.cursorrules` so your AI knows to offer variants. Flags: `--dry-run`, `--skip-install`,
-`--skill`.
+`.cursorrules` so your AI knows to offer variants. It also ships a tiny `patch-package` patch
+(`patches/dialkit+1.2.0.patch`) that makes the panel **minimize/expand morph delightful** — a
+soft-bloom expand, a clean-tuck collapse, and a hover-lift bubble (the one thing CSS can't
+reach, since it's a hardcoded motion spring). The patch is pinned to dialkit 1.2.0 and applied
+via a `postinstall` hook; it's entirely non-fatal — the panel works regardless. Flags:
+`--dry-run`, `--skip-install`, `--skill`.
 
 Then add the panel host once, in your app root:
 
