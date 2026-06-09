@@ -64,29 +64,48 @@ Rules:
 ## 2. Build on DialKit (v0)
 
 `index.tsx` drives selection through DialKit — variant choice is a `select`, params are
-controls, finalize is an `action`:
+controls, finalize is an `action`. **Use the contextual config preset for the element type**
+(`panelConfig` from `variantkit/configs`) so the panel shows controls that fit the element,
+not a generic radius/accent for everything. Derive `defaults` with `defaultsOf` so you never
+hand-maintain a separate defaults object.
 
 ```tsx
 import { useDialKit } from 'dialkit'
 import { registry } from './registry'
-import { buildDecision, copyDecision } from '../../core/buildDecision'
+import { buildDecision, copyDecision } from '../../variantkit/buildDecision'
+import { panelConfig, defaultsOf, regOf } from '../../variantkit/configs'
 
-const DEFAULTS = { radius: 18, accent: '#1F5E54' }
+const KEYS = ['ledger', 'slab', 'inverse']
+const cfg = panelConfig('card', KEYS, { component: 'PricingCard' }) // 'card' preset → radius/padding/accent
 
 export default function PricingCard(props: { plan?: string }) {
-  const v = useDialKit('PricingCard', {
-    variant: { type: 'select', options: ['ledger', 'slab', 'inverse'], default: 'slab' },
-    radius: [DEFAULTS.radius, 0, 32],
-    accent: DEFAULTS.accent,
-    finalize: { type: 'action', label: 'Finalize & copy decision' },
-  }, {
-    onAction: () => copyDecision(buildDecision('PricingCard', v, DEFAULTS, registry)),
+  const v = useDialKit('PricingCard', cfg, {
+    onAction: () => copyDecision(buildDecision('PricingCard', v, defaultsOf(cfg), regOf(KEYS))),
   })
-
   const Active = registry[v.variant].component
-  return <Active {...props} radius={v.radius} accent={v.accent} />
+  return <Active {...props} radius={v.radius} padding={v.padding} accent={v.accent} />
 }
 ```
+
+### Contextual configs — pick the preset that matches the element
+
+`panelConfig(type, variantKeys, opts)` assembles `{ variant select, …type controls, finalize
+action }`. Choose `type` by what you're building. Built-in presets (`variantkit/configs.ts`):
+
+| type | controls it exposes |
+|------|---------------------|
+| `card` | radius, padding, accent |
+| `button` | radius, size, weight, accent, label |
+| `hero` | align, headingSize, bg, accent |
+| `badge` | radius, size, uppercase, accent |
+| `input` | radius, size, accent, label |
+| `nav` | gap, sticky, accent |
+| `banner` | radius, align, dismissible, accent |
+| `generic` | radius, accent (fallback) |
+
+If none fit, pass a custom config object instead of a preset — same shape (`variant` select +
+your controls + `finalize` action). Add a new preset to `configs.ts` when an element type
+recurs. A button must never show a card's `padding`; a hero must show `align`/`headingSize`.
 
 ## 3. `decision.json` schema
 

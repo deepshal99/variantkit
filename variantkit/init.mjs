@@ -57,15 +57,17 @@ if (SKIP_INSTALL) {
   }
 }
 
-// 2. buildDecision.ts
-head('2. runtime (buildDecision.ts)')
+// 2. runtime (buildDecision.ts + configs.ts)
+head('2. runtime (buildDecision.ts, configs.ts)')
 const srcDir = existsSync(join(target, 'src')) ? join(target, 'src', 'variantkit') : join(target, 'variantkit')
-const buildDest = join(srcDir, 'buildDecision.ts')
-const buildSrc = join(SELF, 'buildDecision.ts')
-if (!existsSync(buildSrc)) fail(`missing source: ${buildSrc}`)
 if (!DRY) mkdirSync(srcDir, { recursive: true })
-if (!DRY) copyFileSync(buildSrc, buildDest)
-did(`copy buildDecision.ts -> ${relative(target, buildDest)}`)
+for (const file of ['buildDecision.ts', 'configs.ts']) {
+  const from = join(SELF, file)
+  if (!existsSync(from)) fail(`missing source: ${from}`)
+  const to = join(srcDir, file)
+  if (!DRY) copyFileSync(from, to)
+  did(`copy ${file} -> ${relative(target, to)}`)
+}
 
 // 3. AGENT.md (do not clobber an existing project AGENT.md)
 head('3. contract (AGENT.md)')
