@@ -37,7 +37,34 @@ import 'dialkit/styles.css'
 If you cannot run the installer (offline), you can still scaffold using the recipe below; add
 `dialkit motion` to deps and copy `buildDecision.ts` from the variantkit repo when possible.
 
+## Vocabulary (use these exactly)
+
+**Element** = the thing being designed. **Variant** = one structural take on it. **Control** =
+one setting; **Configuration** = the contextual set of controls for an element. **Snapshot** =
+a saved variant+values state. **Finalize** → writes a **Decision** → agent **prunes** losers.
+Full glossary: `NAMING.md`.
+
 ## Step 2 — scaffold a variant set
+
+**Easiest path — the `Studio` helper.** For one OR many elements, prefer it over hand-wiring;
+it gives one panel, a folder per element, finalize routing, and focus-on-hover:
+
+```tsx
+import { Studio, type ElementDef } from './variantkit/react'
+
+const ELEMENTS: ElementDef[] = [
+  { name: 'PricingCard', type: 'card', keys: ['slab','ledger','inverse'], render: (variant, v) => <Card variant={variant} {...v} /> },
+  // add more elements here; each gets its own folder + contextual controls
+]
+<Studio elements={ELEMENTS} focusOnHover />
+```
+
+`type` selects the contextual preset (`card`/`button`/`hero`/`badge`/`input`/`table`/…);
+controls are scoped to that element. For a single element, pass one entry. Mount `<DialRoot/>`
+once in the app root. Still author the variant components file-per-variant (recipe below) so
+the prune stays a clean delete.
+
+### Manual wiring (if not using the helper)
 
 File-per-variant. Only `index.tsx` wires the tool; each variant is a plain, self-contained
 component. This is what makes the later prune reliable (delete files + one rename).

@@ -10,6 +10,9 @@ do two things: **scaffold** variant sets when asked for "options/variants/takes"
 Pruning must be reliable. It is mostly file deletion plus one file rename. Never move JSX
 between files by hand. Follow this exactly.
 
+**Vocabulary:** element, variant, control, configuration, snapshot, finalize, decision, prune
+— one word per concept, defined in `NAMING.md`. Use them consistently.
+
 ---
 
 ## 0. When to offer variants (read this first)
@@ -164,11 +167,25 @@ not better — show what this element actually needs, nothing it doesn't.
 
 ### Hide the redundant copy button
 
-DialKit's panel has a native "Copy parameters" clipboard button. VariantKit's Finalize already
-produces the real decision (winner + diff + prune), so hide the clipboard: import
-`variantkit/dialkit-clean.css` once. Optional dark theme: import `variantkit/dialkit-dark.css`
-and set `data-theme="dark"` on `.dialkit-root`. (DialKit presets/Versions stay — they're a
-useful "save a tuned snapshot" feature, distinct from variants.)
+DialKit's panel has a native "Copy parameters" clipboard button and a preset toolbar
+(Add preset / Version dropdown). `variantkit/dialkit-clean.css` hides the whole preset toolbar
+and the clipboard — VariantKit commits via Finalize, so they're redundant and confusing.
+Import it once. Optional dark theme: import `variantkit/dialkit-dark.css` and set
+`data-theme="dark"` on `.dialkit-root`.
+
+### Snapshots (the "presets", reconsidered) — deferred
+
+The real need behind DialKit's presets: keep **two tunings of the same element** to compare
+(e.g. Slab/radius 12/green vs Inverse/radius 4/amber) and pick one. That's a **Snapshot** =
+a saved (variant + control values) state. DialKit presets technically did this — because the
+variant is itself a control, a preset captured variant+values — but the "Version 1" UX was
+generic and confusing, so it's hidden for now.
+
+When built, do it VariantKit-native: a "Save snapshot" action + named snapshot chips you can
+switch between, with Finalize acting on the active snapshot (and the decision optionally
+recording the runner-ups as "alternatives considered"). **Not on the v1 path** — today, to
+compare two tunings, finalize one (copy its decision), then tune and finalize the other; you
+have two decisions to compare. Revisit snapshots when the live side-by-side need is real.
 
 ## 3. `decision.json` schema
 
