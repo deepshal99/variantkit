@@ -74,20 +74,16 @@ function focusFolder(name: string | null) {
 
 export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize }: StudioProps) {
   const [focused, setFocused] = useState<string | null>(null)
-  // Per-element "just finalized" flag — flips the finalize button's label to "✓ Copied",
-  // then reverts. Feedback lives in the PANEL button only; the rendered element is never
-  // overlaid or decorated, so the user can keep judging it.
-  const [done, setDone] = useState<Record<string, boolean>>({})
   const elsRef = useRef(elements)
   elsRef.current = elements
-  const doneTimer = useRef<ReturnType<typeof setTimeout>>()
 
-  // One combined config: a folder per element, first open and the rest collapsed. The active
-  // element's finalize label morphs to "✓ Copied" for ~1.5s after finalizing.
+  // One combined config: a folder per element, first open and the rest collapsed. The
+  // finalize button's "✓ Copied" feedback is handled inside copyDecision (panel-side, no
+  // overlay), so the label stays a plain "Finalize <name>" here.
   const combined: Record<string, unknown> = {}
   elements.forEach((e, i) => {
     const base = cfgFor(e)
-    const finalize = { ...(base.finalize as object), label: done[e.name] ? '✓  Copied' : `Finalize ${e.name}` }
+    const finalize = { ...(base.finalize as object), label: `Finalize ${e.name}` }
     combined[e.name] = { ...base, finalize, _collapsed: i !== 0 }
   })
 
@@ -98,11 +94,8 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
       if (!e) return
       const slice = (all as Record<string, Record<string, ParamValue>>)[elName]
       const decision = buildDecision(elName, slice, defaultsOf(cfgFor(e)), regOf(e.keys))
-      copyDecision(decision)
+      copyDecision(decision) // also flashes the Finalize button to "✓ Copied"
       onFinalize?.(decision)
-      setDone((d) => ({ ...d, [elName]: true }))
-      clearTimeout(doneTimer.current)
-      doneTimer.current = setTimeout(() => setDone((d) => ({ ...d, [elName]: false })), 1600)
     },
   }) as Record<string, Record<string, ParamValue>>
 

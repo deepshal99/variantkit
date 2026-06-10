@@ -15,8 +15,23 @@
   transform: scale(0.97);
 }
 
-/* Finalize button label morphs to "✓ Copied" on finalize (handled in JS); keep the swap
-   smooth by letting the button settle with the same easing as press. */
+/* Finalize button morphs to "✓ Copied" on finalize (text swapped in JS; the button carries
+   data-vk-flashing while it shows). A quick scale pop confirms the action — no color is
+   imposed, so it works with whatever the project themed the panel button as. */
+.dialkit-root .dialkit-button[data-vk-flashing] {
+  animation: vk-finalized-pop 340ms var(--vk-ease-out);
+}
+@keyframes vk-finalized-pop {
+  0% {
+    transform: scale(0.96);
+  }
+  55% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
 
 /* ── Theme switch (light ↔ dark) — occasional action, so it earns delight ──────────────── */
 /* The panel cross-fades its colors. `.vk-theming` is added only during the switch (~420ms),
@@ -55,5 +70,8 @@
   }
   .dialkit-root button:active {
     transform: none;
+  }
+  .dialkit-root .dialkit-button[data-vk-flashing] {
+    animation: none;
   }
 }

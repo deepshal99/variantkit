@@ -86,9 +86,34 @@ export function buildDecision(
   }
 }
 
+// Briefly morph the element's Finalize button to "✓ Copied", in the PANEL only (never an
+// overlay on the app UI). Runs from copyDecision so EVERY finalize gets feedback — whether
+// wired by hand or via the Studio helper. DialKit renders an action as
+// `<button class="dialkit-button">Finalize X</button>` and does not re-render on an action
+// (no value changed), so a direct text swap sticks until we revert it.
+function flashFinalized(component: string): void {
+  if (typeof document === 'undefined') return
+  const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('.dialkit-root .dialkit-button'))
+  // Prefer the exact "Finalize <component>" button; fall back to the sole action button.
+  let btn = buttons.find((b) => b.textContent?.trim() === `Finalize ${component}`)
+  if (!btn && buttons.length === 1) btn = buttons[0]
+  if (!btn || btn.dataset.vkFlashing) return
+  const original = btn.textContent ?? ''
+  btn.dataset.vkFlashing = '1'
+  btn.textContent = '✓  Copied'
+  setTimeout(() => {
+    if (btn!.dataset.vkFlashing) {
+      btn!.textContent = original
+      delete btn!.dataset.vkFlashing
+    }
+  }, 1500)
+}
+
 // Copy the decision JSON to the clipboard. NEVER fail silently: if the Clipboard API is
 // unavailable (insecure context, old webview), fall back to execCommand, then to a log.
+// Also flashes the Finalize button to "✓ Copied" (panel-side feedback, no toast/overlay).
 export async function copyDecision(decision: Decision): Promise<void> {
+  flashFinalized(decision.component)
   const json = JSON.stringify(decision, null, 2)
   try {
     if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
