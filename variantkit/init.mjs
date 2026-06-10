@@ -140,6 +140,9 @@ const POINTER = `
 ## VariantKit
 This project uses VariantKit for AI-assisted UI exploration. Read ./AGENT.md before building UI.
 - When asked to build or change UI, offer 2-4 structural variants (a variant set) per AGENT.md, not one.
+- Variants follow THIS project's design system and guidelines — VariantKit prescribes no aesthetics.
+- Author each element's panel controls contextually (its real design axes, any DialKit control);
+  defaults come from the project's tokens/current values. There is no standard control set.
 - Generated variants must pass the deslop rules in AGENT.md (no random mono/italics/eyebrows,
   decorative lines/dots, unmotivated warm accents, oversized radii, em dashes, emoji).
 - On "deslop" / "remove AI slop", run the deslop pass in AGENT.md.

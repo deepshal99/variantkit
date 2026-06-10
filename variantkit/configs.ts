@@ -1,114 +1,48 @@
-// VariantKit — contextual config presets per element type.
+// VariantKit — panel assembly helpers. VariantKit does NOT decide what the controls are.
 //
-// The panel should show controls that fit the ELEMENT being edited: a hero gets align /
-// heading size / background; a button gets size / weight / label; a card gets radius /
-// padding. When the agent scaffolds a variant set, it picks the preset for the element type
-// so the panel is contextual, not a generic radius/accent for everything.
+// The agent building the project authors the controls per element — contextual, specific,
+// derived from that element's actual design axes and the project's design system. Any control
+// DialKit supports is fair game: slider, select, toggle (boolean), color, text, spring /
+// transition, nested folder groups. There is no preset menu and no VariantKit default value:
+// every default comes from the project (its tokens, or the element's current values).
+//
+// VariantKit's only additions are structural:
+//   - a `variant` select (only when there are 2+ variants)
+//   - a `finalize` action
 //
 // Usage in a component's index.tsx (built on DialKit):
-//   const cfg = panelConfig('button', ['solid','outline','ghost'])
+//   const cfg = panelConfig(
+//     { tone: { type: 'select', options: ['quiet','bold'], default: 'quiet' },  // yours,
+//       accent: tokens.brand, compact: false },                                  // per element
+//     ['solid', 'outline', 'ghost'],
+//     { component: 'Button' },
+//   )
 //   const v = useDialKit('Button', cfg, { onAction: () =>
 //     copyDecision(buildDecision('Button', v, defaultsOf(cfg), regOf(['solid','outline','ghost']))) })
 
 // Loose config shape — these are DialKit config objects; we don't import DialKit's types here
-// so the presets stay framework-light. `any` keeps the result assignable to DialKit's own
+// so the helpers stay framework-light. `any` keeps the result assignable to DialKit's own
 // config type at the useDialKit call site without coupling this file to DialKit.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Control = any
 export type PanelConfig = Record<string, Control>
 
-const ACCENT = '#1F5E54'
-
-// Per-type CONTROL presets (the params only — variant select + finalize are added by panelConfig).
-export const elementConfigs: Record<string, PanelConfig> = {
-  generic: { radius: [12, 0, 32], accent: ACCENT },
-  card: {
-    radius: [12, 0, 32],
-    padding: [24, 12, 48],
-    accent: ACCENT,
-    shadow: { type: 'select', options: ['none', 'soft', 'strong'], default: 'soft' },
-    darkMode: false, // boolean -> segmented Off|On in the panel
-  },
-  button: {
-    radius: [10, 0, 24],
-    size: { type: 'select', options: ['sm', 'md', 'lg'], default: 'md' },
-    weight: [600, 400, 800],
-    accent: ACCENT,
-    label: 'Get started',
-    fullWidth: false,
-    darkMode: false, // boolean -> segmented Off|On in the panel
-  },
-  hero: {
-    eyebrow: 'New',
-    headingSize: [48, 28, 72],
-    align: { type: 'select', options: ['left', 'center'], default: 'center' },
-    darkMode: false, // boolean -> segmented Off|On in the panel
-    accent: ACCENT,
-  },
-  badge: {
-    radius: [999, 0, 999],
-    size: { type: 'select', options: ['sm', 'md'], default: 'sm' },
-    uppercase: true,
-    label: 'Beta',
-    accent: ACCENT,
-    darkMode: false, // boolean -> segmented Off|On in the panel
-  },
-  input: {
-    radius: [8, 0, 20],
-    size: { type: 'select', options: ['sm', 'md', 'lg'], default: 'md' },
-    label: 'Email',
-    placeholder: 'you@company.com',
-    accent: ACCENT,
-  },
-  nav: { gap: [24, 8, 48], sticky: true, accent: ACCENT },
-  banner: {
-    radius: [12, 0, 28],
-    align: { type: 'select', options: ['left', 'center'], default: 'left' },
-    dismissible: true,
-    accent: ACCENT,
-  },
-  table: {
-    density: { type: 'select', options: ['compact', 'cozy', 'comfortable'], default: 'cozy' },
-    striped: true,
-    radius: [10, 0, 20],
-    headerWeight: [600, 400, 800],
-    accent: ACCENT,
-  },
-  avatar: {
-    size: [40, 24, 96],
-    radius: [999, 0, 999],
-    ring: false,
-    accent: ACCENT,
-  },
-  toast: {
-    radius: [10, 0, 24],
-    position: { type: 'select', options: ['top', 'bottom'], default: 'bottom' },
-    duration: [3000, 1000, 8000],
-    accent: ACCENT,
-    transition: { type: 'spring', visualDuration: 0.4, bounce: 0.3 }, // how it springs in/out
-  },
-  tabs: {
-    size: { type: 'select', options: ['sm', 'md', 'lg'], default: 'md' },
-    gap: [24, 8, 48],
-    accent: ACCENT,
-    transition: { type: 'spring', visualDuration: 0.3, bounce: 0.2 }, // active-indicator slide
-  },
-}
-
 const RESERVED = new Set(['variant', 'finalize'])
 
-// Assemble the full DialKit config for a variant set: variant select + the type's controls +
-// a finalize action. Unknown types fall back to `generic`.
+// Assemble the full DialKit config for a variant set: [variant select +] the element's own
+// controls + a finalize action. With a single variant key, no dropdown is added — the panel
+// is just the element's controls + finalize.
 export function panelConfig(
-  type: string,
+  controls: PanelConfig,
   variantKeys: string[],
   opts?: { finalizeLabel?: string; component?: string },
 ): PanelConfig {
-  const params = elementConfigs[type] ?? elementConfigs.generic
   return {
-    variant: { type: 'select', options: variantKeys, default: variantKeys[0] },
-    ...params,
-    finalize: { type: 'action', label: opts?.finalizeLabel ?? `Finalize ${opts?.component ?? type}` },
+    ...(variantKeys.length > 1
+      ? { variant: { type: 'select', options: variantKeys, default: variantKeys[0] } }
+      : {}),
+    ...controls,
+    finalize: { type: 'action', label: opts?.finalizeLabel ?? `Finalize ${opts?.component ?? ''}`.trim() },
   }
 }
 

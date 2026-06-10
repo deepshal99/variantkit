@@ -54,7 +54,9 @@ export function buildDecision(
   registry: Record<string, unknown>,
   opts?: { now?: string; note?: string },
 ): Decision {
-  const finalized = String(liveValues.variant)
+  // No `variant` in the live values means a single-variant set (no dropdown was rendered):
+  // the winner is the registry's only key.
+  const finalized = liveValues.variant !== undefined ? String(liveValues.variant) : (Object.keys(registry)[0] ?? '')
 
   const values: Record<string, ParamValue> = {}
   for (const k of Object.keys(liveValues)) {

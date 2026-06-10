@@ -42,12 +42,15 @@ handles `deslop`. (Per-project, still run `init` once for the runtime.)
 ## What's in here
 
 - `buildDecision.ts` — pure core (override diff + prune list + clipboard).
-- `configs.ts` — contextual control presets per element type (`panelConfig`/`defaultsOf`/`regOf`).
+- `configs.ts` — panel assembly helpers (`panelConfig`/`defaultsOf`/`regOf`). Controls are
+  authored per element by the agent; VariantKit only wraps them with variant + finalize.
 - `react.tsx` — the `Studio` helper: one panel, a folder per element, finalize routing,
-  focus-on-hover, and the in-button "✓ Copied" finalize feedback.
-- `dialkit-clean.css` — hide the redundant copy button + dividers (keeps the preset/snapshot toolbar).
+  focus-on-hover (panel-side only), and the in-button "✓ Copied" finalize feedback.
+- `dialkit-clean.css` — hide the redundant copy button + dividers, fix the panel's missing
+  bottom padding (keeps the preset/snapshot toolbar).
 - `dialkit-dark.css` — cool, crisp dark palette (DialKit ships light only).
-- `motion.css` — staggered entrances, press feedback, custom easings, reduced-motion.
+- `motion.css` — panel-only motion: press feedback, theme cross-fade, reduced-motion. Never
+  touches the project's UI.
 - `init.mjs` — the per-project installer (copies all of the above).
 - `skill/SKILL.md` — the global Claude Code skill.
 - `../AGENT.md` — the contract; `../NAMING.md` — the vocabulary.

@@ -1,5 +1,6 @@
-// VariantKit core — pure, framework-agnostic. No React imports.
-// Builds the finalize decision (winner + override diff + prune list) and copies it.
+// VariantKit core — the only runtime file you copy into a project. Pure, no React imports.
+// Builds the finalize decision (winner + override diff + prune list) and copies it so your
+// agent can prune the variant set down to the winner. See AGENT.md for the contract.
 //
 //   live values + frozen defaults
 //            │
@@ -53,16 +54,16 @@ export function buildDecision(
   registry: Record<string, unknown>,
   opts?: { now?: string; note?: string },
 ): Decision {
-  const finalized = String(liveValues.variant)
+  // No `variant` in the live values means a single-variant set (no dropdown was rendered):
+  // the winner is the registry's only key.
+  const finalized = liveValues.variant !== undefined ? String(liveValues.variant) : (Object.keys(registry)[0] ?? '')
 
-  // Final param values (everything the user can tweak), minus the reserved controls.
   const values: Record<string, ParamValue> = {}
   for (const k of Object.keys(liveValues)) {
     if (RESERVED.has(k)) continue
     values[k] = liveValues[k]
   }
 
-  // Only the keys that drifted from the agent's frozen defaults — the taste signal.
   const overridesFromDefault: Record<string, Override> = {}
   for (const k of Object.keys(values)) {
     if (!(k in defaults)) continue
@@ -86,8 +87,7 @@ export function buildDecision(
 }
 
 // Copy the decision JSON to the clipboard. NEVER fail silently: if the Clipboard API is
-// unavailable (insecure context, old webview), fall back to execCommand, and if that
-// fails too, log the JSON so the user can copy it by hand.
+// unavailable (insecure context, old webview), fall back to execCommand, then to a log.
 export async function copyDecision(decision: Decision): Promise<void> {
   const json = JSON.stringify(decision, null, 2)
   try {
@@ -121,9 +121,6 @@ function fallbackCopy(json: string): void {
     ok = false
   }
   document.body.removeChild(ta)
-  if (ok) {
-    console.info('[variantkit] decision copied via fallback. Paste it to your agent.')
-  } else {
-    console.warn('[variantkit] could not copy automatically. Decision:\n' + json)
-  }
+  if (ok) console.info('[variantkit] decision copied via fallback. Paste it to your agent.')
+  else console.warn('[variantkit] could not copy automatically. Decision:\n' + json)
 }

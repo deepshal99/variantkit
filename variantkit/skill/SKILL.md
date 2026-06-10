@@ -43,6 +43,21 @@ The `Studio` helper handles finalize feedback in-button (the button morphs to "�
 so no toast is needed. **Snapshots:** the panel's preset toolbar (≡+ / Version) saves a tuned
 variant — use it to keep two tunings and switch between them; Finalize acts on the active one.
 
+## The rules that make this work (never violate)
+
+**VariantKit presents; the project decides.**
+- **Design comes from the project.** You already know this project's design system, tokens,
+  and guidelines — every variant follows them, exactly as a hand-built component would.
+  VariantKit ships no colors, radii, fonts, or "house style"; never introduce one.
+- **Controls come from the element.** Author the controls that genuinely matter for tweaking
+  THIS element — its real design axes. Any number, any kind of control; there is no standard
+  set. Never reuse a control set across unrelated elements.
+- **Defaults come from the code.** Every control default is the element's current/intended
+  value from the project (tokens, existing styles) — never an invented literal.
+- **The rendered element stays untouched.** No rings, badges, overlays, or layout imposed on
+  the project's UI — the user judges the element exactly as it ships. All feedback lives in
+  the panel.
+
 If you cannot run the installer (offline), you can still scaffold using the recipe below; add
 `dialkit motion` to deps and copy `buildDecision.ts` from the variantkit repo when possible.
 
@@ -62,16 +77,30 @@ it gives one panel, a folder per element, finalize routing, and focus-on-hover:
 import { Studio, type ElementDef } from './variantkit/react'
 
 const ELEMENTS: ElementDef[] = [
-  { name: 'PricingCard', type: 'card', keys: ['slab','ledger','inverse'], render: (variant, v) => <Card variant={variant} {...v} /> },
-  // add more elements here; each gets its own folder + contextual controls
+  {
+    name: 'PricingCard',
+    keys: ['slab', 'ledger', 'inverse'],
+    // Authored for THIS element, defaults from THIS project's tokens — not a fixed menu.
+    controls: {
+      density: { type: 'select', options: ['compact', 'comfortable'], default: 'comfortable' },
+      accent: tokens.brand,
+      showAnnualToggle: true,
+    },
+    render: (variant, v) => <Card variant={variant} {...v} />,
+  },
+  // add more elements here; each gets its own folder + its own authored controls
 ]
 <Studio elements={ELEMENTS} focusOnHover />
 ```
 
-`type` selects the contextual preset (`card`/`button`/`hero`/`badge`/`input`/`table`/…);
-controls are scoped to that element. For a single element, pass one entry. Mount `<DialRoot/>`
-once in the app root. Still author the variant components file-per-variant (recipe below) so
-the prune stays a clean delete.
+`controls` is whatever fits the element — any DialKit control: number `[default,min,max]` →
+slider, string → text, `#hex` → color, boolean → segmented toggle, `select` → dropdown,
+`spring`/`transition` → motion editor (only for elements that move), nested object → folder
+group. Ask "which axes of this element would the developer tweak before committing?" and
+expose exactly those. For a single element, pass one entry; with one variant key no dropdown
+is shown. `focusOnHover` expands the hovered element's folder — panel-side only, nothing is
+drawn over the rendered element. Mount `<DialRoot/>` once in the app root. Still author the
+variant components file-per-variant (recipe below) so the prune stays a clean delete.
 
 ### Manual wiring (if not using the helper)
 
@@ -88,19 +117,22 @@ ComponentName/
     <c>.tsx
 ```
 
-`index.tsx` — variant = a DialKit `select`, params = controls, finalize = an `action`:
+`index.tsx` — variant = a DialKit `select`, your authored controls, finalize = an `action`.
+(Control names/defaults below are placeholders — derive yours from the element + the
+project's tokens.)
 
 ```tsx
 import { useDialKit } from 'dialkit'
 import { registry } from './registry'
 import { buildDecision, copyDecision, type ParamValue } from '../../core/buildDecision'
 
-const DEFAULTS: Record<string, ParamValue> = { radius: 18, accent: '#1F5E54' }
+// Defaults = the project's real values (tokens / current styles), never invented literals.
+const DEFAULTS: Record<string, ParamValue> = { density: 'comfortable', accent: tokens.brand }
 
 export default function ComponentName(props: { /* real props */ }) {
   const v = useDialKit('ComponentName', {
-    variant: { type: 'select', options: ['a', 'b', 'c'], default: 'a' },
-    radius: [DEFAULTS.radius as number, 0, 32],
+    variant: { type: 'select', options: ['a', 'b', 'c'], default: 'a' }, // omit when only one variant
+    density: { type: 'select', options: ['compact', 'comfortable'], default: DEFAULTS.density },
     accent: DEFAULTS.accent as string,
     finalize: { type: 'action', label: 'Finalize & copy decision' },
   }, {
@@ -108,7 +140,7 @@ export default function ComponentName(props: { /* real props */ }) {
   }) as Record<string, ParamValue>
 
   const Active = registry[String(v.variant)].component
-  return <Active {...props} radius={v.radius as number} accent={v.accent as string} />
+  return <Active {...props} density={String(v.density)} accent={v.accent as string} />
 }
 ```
 

@@ -1,30 +1,16 @@
-/* VariantKit motion — purposeful, fast, ease-out. (Principles: emil-design-eng.)
-   Only transform/opacity animate. Everything stays under 300ms. Respects reduced-motion. */
+/* VariantKit motion — PANEL ONLY. (Principles: emil-design-eng.)
+   Only transform/opacity animate. Everything stays under 300ms. Respects reduced-motion.
+   Nothing here may style or animate the project's own UI — VariantKit presents the user's
+   elements untouched. All selectors are scoped to .dialkit-root / panel chrome. */
 :root {
   --vk-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --vk-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
-/* Element sections enter staggered (decorative; never blocks interaction). */
-.vk-section {
-  opacity: 0;
-  transform: translateY(8px);
-  animation: vk-rise 320ms var(--vk-ease-out) forwards;
-  animation-delay: calc(var(--vk-i, 0) * 60ms);
-}
-@keyframes vk-rise {
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Press feedback — rendered element CTAs and the panel's own buttons (incl. Finalize). */
-.vk-section button,
+/* Press feedback — the panel's own buttons (incl. Finalize). */
 .dialkit-root button {
   transition: transform 140ms var(--vk-ease-out), background-color 160ms var(--vk-ease-out);
 }
-.vk-section button:active,
 .dialkit-root button:active {
   transform: scale(0.97);
 }
@@ -67,19 +53,6 @@
   .vk-theme-toggle .vk-swap {
     animation: none;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .vk-section {
-    animation: vk-fade 200ms ease forwards;
-    transform: none;
-  }
-  @keyframes vk-fade {
-    to {
-      opacity: 1;
-    }
-  }
-  .vk-section button:active,
   .dialkit-root button:active {
     transform: none;
   }

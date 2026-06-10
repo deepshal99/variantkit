@@ -68,6 +68,12 @@ describe('buildDecision', () => {
     expect(d.prune).toEqual(['ledger', 'inverse'])
   })
 
+  it('single-variant set (no variant select rendered): winner = the only registry key, empty prune', () => {
+    const d = buildDecision('Footer', { radius: 12 }, { radius: 12 }, { terminal: true }, { now: NOW })
+    expect(d.finalized).toBe('terminal')
+    expect(d.prune).toEqual([])
+  })
+
   it('regression: reproduces the committed Phase C fixture decision exactly', () => {
     const expected = JSON.parse(readFileSync(FIXTURE, 'utf8'))
     const d = buildDecision(

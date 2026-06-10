@@ -1,45 +1,57 @@
 // VariantKit React helper — one reusable component instead of hand-writing a studio per
 // project. Folds N elements into ONE DialKit panel (a folder each), routes each element's
-// finalize, and optionally focuses the folder of the element you hover.
+// finalize, and optionally focuses the folder of the element you hover (panel-side only —
+// nothing is ever drawn over the project's UI).
 //
 //   import { Studio } from './variantkit/react'
 //   <Studio elements={[
-//     { name: 'Hero', type: 'hero', keys: ['centered','split','minimal'], render: (variant, v) => <Hero .../> },
+//     { name: 'Hero', keys: ['centered','split','minimal'],
+//       controls: { headline: 'Ship faster', align: { type: 'select', options: ['left','center'], default: 'left' } },
+//       render: (variant, v) => <Hero .../> },
 //   ]} focusOnHover />
+//
+// `controls` is authored per element by whoever builds it — any controls DialKit supports
+// (slider, select, toggle, color, text, spring, nested folders…), with defaults taken from
+// the project's own design system. VariantKit only adds the variant select (when there are
+// 2+ variants) and the finalize action.
 //
 // Requires <DialRoot/> mounted once in the app root (DialKit), plus dialkit/styles.css and
 // (recommended) ./dialkit-clean.css.
 import { useEffect, useRef, useState, type ReactElement, type ReactNode } from 'react'
-import { motion, AnimatePresence, MotionConfig } from 'motion/react'
+import { motion, MotionConfig } from 'motion/react'
 import { useDialKit } from 'dialkit'
-import { panelConfig, defaultsOf, regOf } from './configs'
+import { panelConfig, defaultsOf, regOf, type PanelConfig } from './configs'
 import { buildDecision, copyDecision, type ParamValue } from './buildDecision'
 
 export interface ElementDef {
   /** Component name — becomes the folder title and the decision's component. */
   name: string
-  /** Contextual preset key (card, button, hero, badge, input, table, …) or 'generic'. */
-  type: string
-  /** Variant keys for this element. */
+  /** Variant keys. A single key renders no variant dropdown — just the controls. */
   keys: string[]
+  /**
+   * The element's own controls — contextual, authored for THIS element (any DialKit control:
+   * slider, select, boolean toggle, color, text, spring, nested folder groups…). VariantKit
+   * adds `variant` + `finalize` around them; it never decides what these are.
+   */
+  controls?: PanelConfig
   /** Render the active variant from its resolved values. */
   render: (variant: string, values: Record<string, ParamValue>) => ReactNode
-  /** Optional explicit config override (skip the preset). */
-  config?: Record<string, unknown>
+  /** Optional full config override (replaces the assembled variant+controls+finalize). */
+  config?: PanelConfig
 }
 
 export interface StudioProps {
   elements: ElementDef[]
   /** Panel title. */
   name?: string
-  /** Expand the folder of the element you hover; ring the focused element. */
+  /** Expand the panel folder of the element you hover (panel-side only; no overlay on the UI). */
   focusOnHover?: boolean
   /** Called after an element is finalized (decision already copied to clipboard). */
   onFinalize?: (decision: ReturnType<typeof buildDecision>) => void
 }
 
-const cfgFor = (e: ElementDef): Record<string, unknown> =>
-  (e.config ?? panelConfig(e.type, e.keys, { component: e.name })) as Record<string, unknown>
+const cfgFor = (e: ElementDef): PanelConfig =>
+  e.config ?? panelConfig(e.controls ?? {}, e.keys, { component: e.name })
 
 // Match DialKit's humanized folder title ("Pricing Card") back to an element name.
 const norm = (s: string) => s.replace(/\s+/g, '').toLowerCase()
@@ -62,8 +74,9 @@ function focusFolder(name: string | null) {
 
 export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize }: StudioProps) {
   const [focused, setFocused] = useState<string | null>(null)
-  // Per-element "just finalized" flag — flips the finalize button's label to a check, then
-  // reverts. In-button feedback (emil-design-eng "morphing feedback button"), not a toast.
+  // Per-element "just finalized" flag — flips the finalize button's label to "✓ Copied",
+  // then reverts. Feedback lives in the PANEL button only; the rendered element is never
+  // overlaid or decorated, so the user can keep judging it.
   const [done, setDone] = useState<Record<string, boolean>>({})
   const elsRef = useRef(elements)
   elsRef.current = elements
@@ -97,81 +110,34 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
     if (focusOnHover) focusFolder(focused)
   }, [focused, focusOnHover])
 
+  // Render the elements as-is — VariantKit adds no layout, spacing, alignment, rings, or
+  // badges around the project's UI. The host page owns presentation entirely.
   return (
     <MotionConfig reducedMotion="user">
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 56, alignItems: 'center' }}>
-      {elements.map((e, i) => {
+      {elements.map((e) => {
         const slice = all[e.name]
         if (!slice) return null
-        const ring = focusOnHover && focused === e.name
-        const variant = String(slice.variant)
+        const variant = e.keys.length > 1 ? String(slice.variant) : e.keys[0]
         return (
           <section
             key={e.name}
             className="vk-section"
             onMouseEnter={focusOnHover ? () => setFocused(e.name) : undefined}
-            style={{
-              // @ts-expect-error CSS custom property for stagger index
-              '--vk-i': i,
-              position: 'relative',
-              textAlign: 'center',
-              borderRadius: 18,
-              // Soft glow on focus (frequent action → subtle, no bounce).
-              boxShadow: ring ? '0 0 0 2px rgba(31,94,84,.45), 0 10px 40px rgba(31,94,84,.12)' : '0 0 0 0 transparent',
-              transition: 'box-shadow 220ms cubic-bezier(0.23,1,0.32,1)',
-            }}
+            style={{ display: 'contents' }}
           >
-            {/* Variant switch is frequent → keep the settle tiny and fast. */}
+            {/* Variant switch is frequent → keep the settle tiny and fast. (This div is the
+                only wrapper box VariantKit adds; it carries zero styling of its own.) */}
             <motion.div
               key={variant}
-              initial={{ opacity: 0, scale: 0.99 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
             >
               {e.render(variant, slice) as ReactElement}
             </motion.div>
-
-            {/* Finalize is occasional → it earns a springy check badge. */}
-            <AnimatePresence>
-              {done[e.name] && (
-                <motion.div
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.7, opacity: 0 }}
-                  transition={{ type: 'spring', visualDuration: 0.42, bounce: 0.5 }}
-                  style={{
-                    position: 'absolute',
-                    top: -14,
-                    right: -14,
-                    width: 38,
-                    height: 38,
-                    borderRadius: 999,
-                    background: '#1F5E54',
-                    display: 'grid',
-                    placeItems: 'center',
-                    boxShadow: '0 8px 22px rgba(31,94,84,.4)',
-                    zIndex: 5,
-                  }}
-                >
-                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-                    <motion.path
-                      d="M4 12.5l5 5L20 6.5"
-                      stroke="#fff"
-                      strokeWidth="2.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ delay: 0.1, duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
-                    />
-                  </svg>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </section>
         )
       })}
-    </div>
     </MotionConfig>
   )
 }

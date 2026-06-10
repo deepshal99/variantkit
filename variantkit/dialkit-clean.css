@@ -6,6 +6,13 @@
 .dialkit-root [title='Copy parameters'] {
   display: none !important;
 }
+
+/* DialKit ships the expanded panel with zero bottom padding (10px 12px 0 12px), so the last
+   control — usually Finalize — sits flush against the edge. Match the sides. The collapsed
+   bubble sets its own uniform 12px, so this only affects the open panel. */
+.dialkit-root .dialkit-panel-inner:not([data-collapsed='true']) {
+  padding-bottom: 12px;
+}
 .dialkit-root .dialkit-panel-header {
   border-bottom: none !important;
 }

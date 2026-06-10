@@ -33,7 +33,7 @@ import { DialRoot } from 'dialkit'
 import 'dialkit/styles.css'
 import './variantkit/dialkit-clean.css' // hide the redundant copy button + dividers
 import './variantkit/dialkit-dark.css'  // optional dark palette
-import './variantkit/motion.css'        // stagger, toast easing, press feedback
+import './variantkit/motion.css'        // panel-only motion (press feedback, theme cross-fade)
 // render <App /> and <DialRoot /> as siblings
 ```
 
@@ -44,12 +44,14 @@ the decision back, and it prunes to one clean file.
 
 ```tsx
 import { Studio } from './variantkit/react'
-<Studio elements={[ /* { name, type, keys, render } per element */ ]} focusOnHover />
+<Studio elements={[ /* { name, keys, controls, render } per element */ ]} focusOnHover />
 ```
 
-One panel, a folder per element, contextual controls by element type, per-element finalize,
-and focus-on-hover (the folder of the element you hover expands). See
-[`examples/contextual`](./examples/contextual).
+One panel, a folder per element, per-element finalize, and focus-on-hover (the folder of the
+element you hover expands — panel-side only, nothing is drawn over your UI). `controls` is
+authored per element by your agent — any DialKit control, contextual to that element, with
+defaults from your project's design system. VariantKit never decides what the controls are.
+See [`examples/contextual`](./examples/contextual).
 
 ## How it works
 

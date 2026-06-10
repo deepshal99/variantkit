@@ -34,6 +34,23 @@ an exact pixel spec) or the developer explicitly says "just one". When unsure, o
 Each variant you generate must pass the deslop rules in §6 — generated UI should not look
 AI-generated.
 
+**VariantKit presents; the project decides.** VariantKit is the panel, the wiring, the
+finalize → prune loop — nothing else. It has no opinion on what the variants look like or
+what their controls are:
+
+- **Design comes from the project.** You already know this project's design system, tokens,
+  and guidelines — every variant follows them, exactly as a hand-built component would.
+  VariantKit ships no colors, radii, fonts, spacings, or "house style". Never introduce a
+  VariantKit default into project UI.
+- **Controls come from the element.** For each element, author the controls that genuinely
+  matter for tweaking THAT element — its real design axes. Any number, any kind. There is no
+  standard control set, and no control is required besides finalize.
+- **Defaults come from the code.** Every control's default is the element's current/intended
+  value from the project (its tokens, its existing CSS) — never an invented value.
+- **The rendered element stays untouched.** No rings, badges, overlays, entrance animations,
+  or layout imposed on project UI. The user must be able to judge the element exactly as it
+  will ship.
+
 ---
 
 ## 1. Scaffolding a variant set
@@ -67,10 +84,11 @@ Rules:
 ## 2. Build on DialKit (v0)
 
 `index.tsx` drives selection through DialKit — variant choice is a `select`, params are
-controls, finalize is an `action`. **Use the contextual config preset for the element type**
-(`panelConfig` from `variantkit/configs`) so the panel shows controls that fit the element,
-not a generic radius/accent for everything. Derive `defaults` with `defaultsOf` so you never
-hand-maintain a separate defaults object.
+controls, finalize is an `action`. **You author the controls per element** — there is no
+preset menu. `panelConfig(controls, variantKeys, opts)` (from `variantkit/configs`) wraps
+your controls with the structural parts: a `variant` select (only when there are 2+ keys) and
+a `finalize` action. Derive `defaults` with `defaultsOf` so you never hand-maintain a separate
+defaults object.
 
 ```tsx
 import { useDialKit } from 'dialkit'
@@ -79,44 +97,41 @@ import { buildDecision, copyDecision } from '../../variantkit/buildDecision'
 import { panelConfig, defaultsOf, regOf } from '../../variantkit/configs'
 
 const KEYS = ['ledger', 'slab', 'inverse']
-const cfg = panelConfig('card', KEYS, { component: 'PricingCard' }) // 'card' preset → radius/padding/accent
+// These controls are EXAMPLES — derive yours from this element + this project's tokens.
+const cfg = panelConfig(
+  {
+    density: { type: 'select', options: ['compact', 'comfortable'], default: 'comfortable' },
+    accent: tokens.brand,          // default = the project's real token, not an invented hex
+    showAnnualToggle: true,
+  },
+  KEYS,
+  { component: 'PricingCard' },
+)
 
 export default function PricingCard(props: { plan?: string }) {
   const v = useDialKit('PricingCard', cfg, {
     onAction: () => copyDecision(buildDecision('PricingCard', v, defaultsOf(cfg), regOf(KEYS))),
   })
   const Active = registry[v.variant].component
-  return <Active {...props} radius={v.radius} padding={v.padding} accent={v.accent} />
+  return <Active {...props} density={v.density} accent={v.accent} showAnnualToggle={v.showAnnualToggle} />
 }
 ```
 
-### Contextual configs — pick the preset that matches the element
+### Authoring controls — contextual, unrestricted
 
-`panelConfig(type, variantKeys, opts)` assembles `{ variant select, …type controls, finalize
-action }`. Choose `type` by what you're building. Built-in presets (`variantkit/configs.ts`):
+Ask: *which axes of this element would the developer actually want to tweak before
+committing?* Those are the controls. Nothing else.
 
-| type | controls it exposes |
-|------|---------------------|
-| `card` | radius, padding, accent, shadow, darkMode |
-| `button` | radius, size, weight, accent, label, fullWidth, darkMode |
-| `hero` | eyebrow, headingSize, align, darkMode, accent |
-| `badge` | radius, size, uppercase, label, accent, darkMode |
-| `input` | radius, size, label, placeholder, accent |
-| `nav` | gap, sticky, accent |
-| `banner` | radius, align, dismissible, accent |
-| `table` | density, striped, radius, headerWeight, accent |
-| `toast` | radius, position, duration, accent, transition (spring) |
-| `tabs` | size, gap, accent, transition (spring) |
-| `generic` | radius, accent (fallback) |
-
-`darkMode` (a boolean → segmented Off|On toggle) suits any element a design system ships in
-both modes. Use a boolean for two-state choices so DialKit renders a segmented toggle; `select`
-always renders a dropdown. `transition` (DialKit's spring editor) belongs only on motion
-elements (toast, tabs) — not static ones.
-
-If none fit, pass a custom config object instead of a preset — same shape (`variant` select +
-your controls + `finalize` action). Add a new preset to `configs.ts` when an element type
-recurs. A button must never show a card's `padding`; a hero must show `align`/`headingSize`.
+- **Any DialKit control is fair game:** number `[default, min, max]` → slider; string →
+  text input; `#hex` string → color picker; boolean → segmented Off|On toggle; `select` →
+  dropdown; `{ type: 'spring' | 'transition' }` → motion editor (only for elements that
+  actually move); a nested object → a folder (group related controls of a complex element).
+- **Any count.** A button might need two controls; a data table might need ten in two
+  folders. More is not better — show what this element needs, nothing it doesn't.
+- **Never copy a control set** from this file, another element, or a previous project. The
+  set that repeats across unrelated elements is by definition not contextual.
+- **Defaults are the project's values.** Pull them from the design tokens or the element's
+  current styles. If you typed a literal that exists nowhere in the project, it's wrong.
 
 ### Multiple elements → ONE panel (folders), never many
 
@@ -127,19 +142,19 @@ folder's finalize via `onAction(path)` — `path` is dot-notation, e.g. `Pricing
 
 ```tsx
 const ELEMENTS = [
-  { name: 'Hero', type: 'hero', keys: ['centered','split','minimal'] },
-  { name: 'PricingCard', type: 'card', keys: ['slab','ledger','inverse'] },
+  { name: 'Hero', keys: ['centered','split','minimal'], controls: heroControls },
+  { name: 'PricingCard', keys: ['slab','ledger','inverse'], controls: cardControls },
 ]
 const combined = Object.fromEntries(
-  ELEMENTS.map((e, i) => [e.name, { ...panelConfig(e.type, e.keys, { component: e.name }), _collapsed: i !== 0 }]),
+  ELEMENTS.map((e, i) => [e.name, { ...panelConfig(e.controls, e.keys, { component: e.name }), _collapsed: i !== 0 }]),
 )
 const all = useDialKit('VariantKit', combined, {
   onAction: (path) => {
     const e = ELEMENTS.find((x) => x.name === path.split('.')[0])!
-    copyDecision(buildDecision(e.name, all[e.name], defaultsOf(panelConfig(e.type, e.keys)), regOf(e.keys)))
+    copyDecision(buildDecision(e.name, all[e.name], defaultsOf(panelConfig(e.controls, e.keys)), regOf(e.keys)))
   },
 })
-// values are nested: all.Hero.headingSize, all.PricingCard.radius, ...
+// values are nested: all.Hero.headingSize, all.PricingCard.density, ...
 ```
 
 `_collapsed: true` starts a folder closed (first one open). Result: one panel, a section per
@@ -151,27 +166,18 @@ element, each with its contextual controls and its own Finalize. See `examples/c
 import { Studio, type ElementDef } from './variantkit/react'
 
 const ELEMENTS: ElementDef[] = [
-  { name: 'PricingCard', type: 'card', keys: ['slab','ledger','inverse'], render: (variant, v) => <Card variant={variant} {...v} /> },
-  // ...more elements
+  { name: 'PricingCard', keys: ['slab','ledger','inverse'], controls: cardControls, render: (variant, v) => <Card variant={variant} {...v} /> },
+  // ...more elements, each with ITS OWN authored controls
 ]
 <Studio elements={ELEMENTS} focusOnHover />   // one panel, folders, finalize routing, focus
 ```
 
-`focusOnHover` expands the folder of the element you hover and rings it — so the panel always
-shows "the element you're editing." For a SINGLE element, just pass one entry (one folder,
-nothing extra). DialKit's `<DialRoot/>` must be mounted once in the app root.
-
-### Scope controls to what's actually being built
-
-Configs are contextual to the **specific thing requested**, not a fixed menu:
-- "variants of a button" → ONE element, `button` controls only (size/weight/label/radius).
-- "a hero section" → it has sub-parts; expose what matters (heading size, align, bg, eyebrow,
-  CTA). Use a custom config (or nested folders) when one element has many tunable parts.
-- "a table design" → many contextual controls (density, striped, header weight, row height,
-  border style, zebra…). Group related ones into nested folders inside that element's config.
-
-Pick or extend the preset (`configs.ts`) so the panel shows only relevant controls. More is
-not better — show what this element actually needs, nothing it doesn't.
+`focusOnHover` expands the panel folder of the element you hover — so the panel always shows
+"the element you're editing." It is panel-side only: **nothing is ever drawn on or around the
+rendered element** (no rings, badges, or overlays — the user must see the element exactly as
+it ships). For a SINGLE element, just pass one entry (one folder, nothing extra); with one
+variant key, no variant dropdown is shown. DialKit's `<DialRoot/>` must be mounted once in
+the app root.
 
 ### Hide the redundant copy button
 
@@ -182,8 +188,8 @@ Import these three stylesheets once (the `Studio` helper assumes them):
 - `variantkit/dialkit-dark.css` — the dark palette DialKit lacks. Call `useDialkitTheme()`
   (from `variantkit/react`) once: it applies the theme, persists it, and injects a sun/moon
   toggle into the panel header so the user flips the panel's light/dark right there.
-- `variantkit/motion.css` — staggered element entrances, finalize-toast easing, press
-  feedback, reduced-motion. Custom ease-out/ease-in-out curves; everything under 300ms.
+- `variantkit/motion.css` — press feedback, theme-switch cross-fade, reduced-motion. Scoped
+  strictly to the panel chrome; it never styles or animates the project's UI.
 
 ### Snapshots — keep two tunings and compare
 
@@ -202,10 +208,10 @@ Finalize writes one decision per component (clipboard in v0; file later).
 {
   "component": "PricingCard",
   "finalized": "slab",                                  // the winning variant key
-  "values": { "radius": 12, "accent": "#175048" },      // final live values to inline
-  "overridesFromDefault": {                             // only changed keys; the taste signal
-    "radius": { "from": 18, "to": 12 },
-    "accent": { "from": "#1F5E54", "to": "#175048" }
+  "values": { "density": "compact", "accent": "#175048" },  // final live values to inline
+  "overridesFromDefault": {                                 // only changed keys; the taste signal
+    "density": { "from": "comfortable", "to": "compact" },
+    "accent": { "from": "#1F5E54", "to": "#175048" }        // from = the project's own default
   },
   "prune": ["ledger", "inverse"],                       // loser keys to delete
   "note": "",
