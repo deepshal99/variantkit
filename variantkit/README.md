@@ -1,67 +1,32 @@
-# VariantKit (v0, on DialKit)
+# variantkit/ — what gets installed
 
-AI-assisted UI exploration: your agent generates N structural variants instead of one, you
-switch/tweak/finalize live in a panel, and the agent prunes the losers to a clean component.
-Built on [DialKit](https://github.com/joshpuckett/dialkit) — DialKit is the panel; VariantKit
-adds variant-switching, the finalize decision, and the prune contract.
-
-## Install it in another project
-
-**Easiest — straight from GitHub, no clone, no publish.** From inside the target project:
+This directory is the distributable. `init.mjs` copies the runtime into a target project
+and wires everything; see the [repo README](../README.md) for positioning and
+[docs/quickstart.md](../docs/quickstart.md) for usage.
 
 ```sh
-npx github:deepshal99/variantkit          # set up this project
-npx github:deepshal99/variantkit --skill  # also install the global skill (every project)
+npx github:deepshal99/variantkit [init|doctor|remove] [targetDir] [flags]
 ```
 
-**Or from a local clone** (no network needed beyond the npm step):
-
-```sh
-node /path/to/this-repo/variantkit/init.mjs /path/to/your/project
-```
-
-Either way it runs `npm i dialkit motion`, copies `buildDecision.ts` into your project,
-copies `AGENT.md` (the agent contract), and appends a pointer to your `CLAUDE.md` /
-`AGENTS.md` / `.cursorrules` so your AI knows to offer variants. Flags: `--dry-run`,
-`--skip-install`, `--skill`.
-
-Then add `<DialRoot/>` as a sibling of your app root, import `dialkit/styles.css`, and ask
-your agent for "three takes on the pricing card". See `examples/sandbox/` for a wired example.
-
-## Make your AI offer variants in *every* project (Claude Code)
-
-Pass `--skill` to `init` (above), or copy the skill manually:
-
-```sh
-cp -r /path/to/this-repo/variantkit/skill ~/.claude/skills/variantkit
-```
-
-Now in any project, the agent proactively offers variants for open-ended UI requests and
-handles `deslop`. (Per-project, still run `init` once for the runtime.)
-
-## What's in here
-
-- `buildDecision.ts` — pure core (override diff + prune list + clipboard).
-- `configs.ts` — panel assembly helpers (`panelConfig`/`defaultsOf`/`regOf`). Controls are
-  authored per element by the agent; VariantKit only wraps them with variant + finalize.
-- `react.tsx` — the `Studio` helper: one panel, a folder per element, finalize routing,
-  focus-on-hover (panel-side only), and the in-button "✓ Copied" finalize feedback.
-- `dialkit-clean.css` — hide the redundant copy button + dividers, fix the panel's missing
-  bottom padding (keeps the preset/snapshot toolbar).
-- `dialkit-dark.css` — cool, crisp dark palette (DialKit ships light only).
-- `motion.css` — panel-only motion: press feedback, theme cross-fade, reduced-motion. Never
-  touches the project's UI.
-- `init.mjs` — the per-project installer (copies all of the above).
-- `skill/SKILL.md` — the global Claude Code skill.
-- `../AGENT.md` — the contract; `../NAMING.md` — the vocabulary.
-
-## Concepts
-
-**Element** → **variants** (structural takes) → **controls** (its contextual **configuration**)
-→ keep **snapshots** to compare two tunings (DialKit's preset toolbar) → **finalize** → a
-**decision** → the agent **prunes** losers. Full glossary in `../NAMING.md`.
-
-## Future (not built yet)
-
-`npx variantkit init` after an npm publish; the dev-server decision plugin; MCP. See the
-repo's `TODOS.md`.
+- `buildDecision.ts` — pure core: dot-path flatten (schema 2), override diff (taste
+  signal), prune list, `submitDecision` (dev transport, "✓ Saved") with clipboard fallback
+  ("✓ Copied"), `defaultsFromConfig`
+- `configs.ts` — panel assembly helpers (`panelConfig`, `defaultsOf`, `regOf`); VariantKit
+  adds only the variant select + finalize around YOUR controls
+- `schemas/sections.ts` — composable control sections + token resolvers (SHADOWS, FONT_STACKS)
+- `schemas/archetypes.ts` — 11 per-element checklists of design axes (see
+  [docs/archetypes.md](../docs/archetypes.md)) — adapt + seed, never paste
+- `react.tsx` — `Studio` (N elements → one panel, folder each, finalize routing,
+  focus-on-hover) + `useDialkitTheme` (panel dark mode with header toggle)
+- `react/VariantBar.tsx` — bottom bar: variant tabs, keys 1-9, Compare, Finalize;
+  auto-discovers sets (shell or Studio layout) from DialKit's documented store
+- `react/VariantStage.tsx` — live side-by-side compare grid for the classic shell
+- `dialkit-clean.css` / `dialkit-dark.css` / `motion.css` — panel chrome polish (hide
+  redundant copy button, dark palette, micro-motion; never touches project UI)
+- `patches/dialkit+1.2.0.patch` — delightful panel minimize/expand morph (patch-package)
+- `vite-plugin.mjs` (+ `.d.mts`) — dev-only decision transport for Vite
+- `templates/` — Next.js App/Pages Router transport routes
+- `skill/SKILL.md` — global Claude Code skill (installed to `~/.claude/skills/variantkit`)
+- `../AGENT.md` — the agent contract: scaffold convention, authoring rules, decision
+  schema 2, prune + self-check, §7 completeness bar, §6 deslop, §8 taste memory
+- `../NAMING.md` — the vocabulary (one word per concept)

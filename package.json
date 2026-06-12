@@ -1,7 +1,7 @@
 {
-  "name": "variant-kit",
-  "version": "0.0.1",
-  "description": "AI-assisted UI exploration: generate variants, choose live, prune to the winner. Built on DialKit.",
+  "name": "variantkit",
+  "version": "0.1.0",
+  "description": "The configuration panel for AI-built UI: your agent generates variants with a full contextual control panel, you tweak and finalize, the losers get pruned from the codebase. Built on DialKit.",
   "type": "module",
   "bin": {
     "variantkit": "variantkit/init.mjs"
@@ -12,6 +12,24 @@
   ],
   "scripts": {
     "init": "node variantkit/init.mjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepshal99/variantkit.git"
+  },
+  "keywords": [
+    "ai",
+    "ui",
+    "design",
+    "variants",
+    "claude-code",
+    "cursor",
+    "dialkit",
+    "dev-tools",
+    "react"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "license": "MIT"
 }

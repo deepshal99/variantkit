@@ -1,0 +1,77 @@
+/* VariantKit motion — PANEL ONLY. (Principles: emil-design-eng.)
+   Only transform/opacity animate. Everything stays under 300ms. Respects reduced-motion.
+   Nothing here may style or animate the project's own UI — VariantKit presents the user's
+   elements untouched. All selectors are scoped to .dialkit-root / panel chrome. */
+:root {
+  --vk-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --vk-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Press feedback — the panel's own buttons (incl. Finalize). */
+.dialkit-root button {
+  transition: transform 140ms var(--vk-ease-out), background-color 160ms var(--vk-ease-out);
+}
+.dialkit-root button:active {
+  transform: scale(0.97);
+}
+
+/* Finalize button morphs to "✓ Copied" on finalize (text swapped in JS; the button carries
+   data-vk-flashing while it shows). A quick scale pop confirms the action — no color is
+   imposed, so it works with whatever the project themed the panel button as. */
+.dialkit-root .dialkit-button[data-vk-flashing] {
+  animation: vk-finalized-pop 340ms var(--vk-ease-out);
+}
+@keyframes vk-finalized-pop {
+  0% {
+    transform: scale(0.96);
+  }
+  55% {
+    transform: scale(1.025);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ── Theme switch (light ↔ dark) — occasional action, so it earns delight ──────────────── */
+/* The panel cross-fades its colors. `.vk-theming` is added only during the switch (~420ms),
+   so this transition never slows down normal hover/interaction. */
+.dialkit-root.vk-theming,
+.dialkit-root.vk-theming *:not(.vk-theme-toggle):not(.vk-swap) {
+  transition:
+    background-color 360ms var(--vk-ease-out),
+    color 360ms var(--vk-ease-out),
+    border-color 360ms var(--vk-ease-out),
+    box-shadow 360ms var(--vk-ease-out) !important;
+}
+
+/* The sun/moon icon spins + scales in each time it swaps (fresh node → animation runs once). */
+.vk-theme-toggle .vk-swap {
+  animation: vk-icon-swap 420ms var(--vk-ease-out);
+}
+@keyframes vk-icon-swap {
+  from {
+    opacity: 0;
+    transform: rotate(-120deg) scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialkit-root.vk-theming,
+  .dialkit-root.vk-theming * {
+    transition: background-color 200ms ease, color 200ms ease !important;
+  }
+  .vk-theme-toggle .vk-swap {
+    animation: none;
+  }
+  .dialkit-root button:active {
+    transform: none;
+  }
+  .dialkit-root .dialkit-button[data-vk-flashing] {
+    animation: none;
+  }
+}

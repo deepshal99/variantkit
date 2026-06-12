@@ -1,44 +1,78 @@
 // Variant: Ledger — outlined, flat, accountant-clean. Self-contained (no tool imports).
-type Props = { plan?: string; radius: number; accent: string }
-
-const morph = {
-  transition:
-    'border-radius .25s ease, background-color .25s ease, box-shadow .25s ease, padding .25s ease',
+type Props = {
+  plan?: string
+  padding: number
+  gap: number
+  maxWidth: number
+  align: 'start' | 'center' | 'end'
+  radius: number
+  borderWidth: number
+  borderColor: string
+  shadow: string
+  fontSize: number
+  weight: number
+  lineHeight: number
+  fontFamily: string
+  accent: string
+  fg: string
+  muted: string
+  priceSize: number
+  ctaStyle: 'solid' | 'outline' | 'ghost'
+  featured: boolean
+  duration: number
 }
 
-export default function Ledger({ plan = 'Pro', radius, accent }: Props) {
+const morph = (duration: number) => ({
+  transition: `border-radius ${duration}s ease, background-color ${duration}s ease, box-shadow ${duration}s ease, padding ${duration}s ease, border-color ${duration}s ease`,
+})
+
+const TEXT_ALIGN = { start: 'left', center: 'center', end: 'right' } as const
+
+export default function Ledger(p: Props) {
+  const { plan = 'Pro' } = p
+  const cta =
+    p.ctaStyle === 'solid'
+      ? { background: p.accent, color: '#fff', border: 'none' }
+      : p.ctaStyle === 'outline'
+        ? { background: 'transparent', color: p.accent, border: `${p.borderWidth}px solid ${p.borderColor}` }
+        : { background: 'transparent', color: p.accent, border: 'none' }
   return (
     <div
       style={{
-        ...morph,
-        borderRadius: radius,
-        padding: 24,
-        border: `1px solid ${accent}`,
+        ...morph(p.duration),
+        display: 'flex',
+        flexDirection: 'column',
+        gap: p.gap,
+        textAlign: TEXT_ALIGN[p.align],
+        borderRadius: p.radius,
+        padding: p.padding,
+        border: `${p.borderWidth}px solid ${p.borderColor}`,
         background: 'transparent',
-        color: '#1a1a1a',
-        fontFamily: 'system-ui, sans-serif',
-        maxWidth: 320,
+        boxShadow: p.featured ? `0 0 0 2px ${p.accent}` : 'none',
+        color: p.fg,
+        fontFamily: p.fontFamily,
+        fontSize: p.fontSize,
+        maxWidth: p.maxWidth,
       }}
     >
-      <div style={{ fontSize: 13, letterSpacing: '.08em', textTransform: 'uppercase', color: accent }}>
+      <div style={{ fontSize: 13, letterSpacing: '.08em', textTransform: 'uppercase', color: p.accent }}>
         {plan}
       </div>
-      <div style={{ fontSize: 40, fontWeight: 700, margin: '8px 0' }}>$29</div>
-      <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0', fontSize: 14, lineHeight: 1.9 }}>
+      <div style={{ fontSize: p.priceSize, fontWeight: p.weight }}>$29</div>
+      <ul style={{ listStyle: 'none', padding: 0, margin: 0, lineHeight: p.lineHeight, color: p.muted }}>
         <li>Unlimited projects</li>
         <li>Priority support</li>
         <li>Audit log</li>
       </ul>
       <button
         style={{
-          ...morph,
-          borderRadius: radius / 2,
+          ...morph(p.duration),
+          ...cta,
+          borderRadius: p.radius / 2,
           padding: '10px 16px',
           width: '100%',
-          border: `1px solid ${accent}`,
-          background: 'transparent',
-          color: accent,
           fontWeight: 600,
+          fontFamily: p.fontFamily,
           cursor: 'pointer',
         }}
       >

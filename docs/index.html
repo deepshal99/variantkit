@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VariantKit — the configuration panel for AI-built UI</title>
+<meta name="description" content="Your agent generates UI variants with a full contextual control panel. You tweak, compare, finalize — the losers get pruned from the codebase.">
+<style>
+  :root {
+    --fg: #18181b;
+    --muted: #5c5c63;
+    --bg: #faf9f7;
+    --surface: #ffffff;
+    --line: #e5e3de;
+    --accent: #1f5e54;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    line-height: 1.55;
+    font-size: 16px;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 72px 24px 96px; }
+  h1 { font-size: 44px; line-height: 1.08; letter-spacing: -0.02em; font-weight: 700; max-width: 16ch; }
+  .sub { font-size: 19px; color: var(--muted); margin: 20px 0 28px; max-width: 52ch; }
+  .install {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: var(--fg); color: #fafafa;
+    border-radius: var(--radius); padding: 12px 18px;
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 14px;
+  }
+  .install button {
+    border: none; cursor: pointer; font: inherit;
+    background: rgba(255,255,255,0.12); color: inherit;
+    border-radius: 6px; padding: 4px 10px;
+    transition: background-color 0.15s ease;
+  }
+  .install button:hover { background: rgba(255,255,255,0.22); }
+  .demo {
+    width: 100%; border-radius: 14px; margin: 48px 0 8px;
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .caption { font-size: 13px; color: var(--muted); }
+  h2 { font-size: 22px; letter-spacing: -0.01em; margin: 72px 0 20px; }
+  ol.loop { padding-left: 0; list-style: none; counter-reset: step; display: grid; gap: 14px; }
+  ol.loop li {
+    counter-increment: step;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 16px 18px 16px 56px; position: relative;
+  }
+  ol.loop li::before {
+    content: counter(step);
+    position: absolute; left: 18px; top: 17px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--fg); color: #fafafa;
+    font-size: 13px; font-weight: 600;
+    display: grid; place-items: center;
+    font-variant-numeric: tabular-nums;
+  }
+  ol.loop b { font-weight: 600; }
+  ol.loop .say {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 13.5px;
+    color: var(--accent);
+  }
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .col { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  .col h3 { font-size: 16px; margin-bottom: 8px; }
+  .col p { font-size: 14.5px; color: var(--muted); }
+  kbd {
+    font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-size: 12px;
+    background: var(--surface); border: 1px solid var(--line); border-bottom-width: 2px;
+    border-radius: 5px; padding: 1px 6px;
+  }
+  footer { margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 14px; color: var(--muted); display: flex; gap: 20px; flex-wrap: wrap; }
+  footer a { color: var(--fg); }
+  @media (max-width: 640px) {
+    h1 { font-size: 32px; }
+    .cols { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>The configuration panel for AI-built UI</h1>
+  <p class="sub">
+    You ask for three takes on a component. Your agent builds three real variants in your
+    running app, wired to a full control panel. You switch, compare, tweak, finalize —
+    and the losers are pruned from your codebase.
+  </p>
+  <div class="install">
+    <span id="cmd">npx github:deepshal99/variantkit</span>
+    <button onclick="navigator.clipboard.writeText(document.getElementById('cmd').textContent).then(()=>{this.textContent='copied';setTimeout(()=>this.textContent='copy',1200)})">copy</button>
+  </div>
+
+  <img class="demo" src="demo.gif" alt="VariantKit demo: switching variants with keys 1-3, live compare grid, finalize">
+  <p class="caption">Keys <kbd>1</kbd>–<kbd>9</kbd> switch variants. Compare renders every variant live. Finalize hands the decision to your agent.</p>
+
+  <h2>The loop</h2>
+  <ol class="loop">
+    <li><b>Ask for options.</b> <span class="say">"three takes on the pricing card"</span> — the agent scaffolds 2–4 self-contained variants plus one thin shell.</li>
+    <li><b>Get a real panel.</b> Archetype schemas give each element its actual configuration panel — layout, surface, typography, color, motion. 12–25 controls, not 3 sliders.</li>
+    <li><b>Explore.</b> Tabs or keys to switch. Compare mode shows all variants reacting to every tweak, live.</li>
+    <li><b>Finalize.</b> The decision — winner plus exactly what you changed — lands in <code>.variantkit/decisions/</code>. No copy-paste.</li>
+    <li><b>Say <span class="say">"apply decision"</span>.</b> Values inline as literals, winner becomes <code>index.tsx</code>, losers and all tool wiring deleted. Zero residue.</li>
+    <li><b>It compounds.</b> After 3+ decisions the agent distills <code>TASTE.md</code> — your preferences, with numbers — and seeds better defaults next time.</li>
+  </ol>
+
+  <h2>Why this beats the alternatives</h2>
+  <div class="cols">
+    <div class="col">
+      <h3>vs. asking the AI to build a switcher</h3>
+      <p>That gets you an ad-hoc toggle with whatever controls it thought of, plus cleanup roulette afterwards. VariantKit is a contract: full archetype panels, one keyboard bar for every set, a schema'd decision file, a deterministic prune with a self-check.</p>
+    </div>
+    <div class="col">
+      <h3>vs. Storybook knobs</h3>
+      <p>Storybook explores in isolation. VariantKit explores in your real app — real data, real layout, real neighbors — and removes itself completely when you decide.</p>
+    </div>
+    <div class="col">
+      <h3>Paramify anything</h3>
+      <p>"Let me tweak this" wraps any existing component in its archetype panel — no variants needed. Finalize inlines your values and strips the wiring.</p>
+    </div>
+    <div class="col">
+      <h3>Built on DialKit</h3>
+      <p>DialKit answers "what number should this be?" VariantKit answers "which direction should this go?" — using DialKit's documented store API. No fork, no patches.</p>
+    </div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/deepshal99/variantkit">GitHub</a>
+    <a href="quickstart.md">Quickstart</a>
+    <a href="archetypes.md">Archetype gallery</a>
+    <span>Works with Claude Code &amp; Cursor · Vite &amp; Next.js · MIT</span>
+  </footer>
+</main>
+</body>
+</html>

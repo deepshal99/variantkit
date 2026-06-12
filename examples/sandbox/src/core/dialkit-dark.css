@@ -1,0 +1,27 @@
+/* Dark theme for DialKit's panel — cool, near-black, crisp (matches DialKit's own dark mode).
+   DialKit ships a light palette only and reads CSS vars on .dialkit-root[data-theme]; this
+   supplies the dark set. Set data-theme="dark" on .dialkit-root to activate. */
+.dialkit-root[data-theme='dark'] {
+  --dial-glass-bg: #0c0c0d;
+  --dial-dropdown-bg: #1b1b1e;
+
+  --dial-surface: rgba(255, 255, 255, 0.055);
+  --dial-surface-hover: rgba(255, 255, 255, 0.09);
+  --dial-surface-active: rgba(255, 255, 255, 0.14);
+  --dial-surface-subtle: rgba(255, 255, 255, 0.04);
+
+  --dial-text-root: #fafafa;
+  --dial-text-section: rgba(255, 255, 255, 0.92);
+  --dial-text-label: rgba(255, 255, 255, 0.62);
+  --dial-text-focus: #ffffff;
+  --dial-text-primary: rgba(255, 255, 255, 0.95);
+  --dial-text-secondary: rgba(255, 255, 255, 0.55);
+  --dial-text-tertiary: rgba(255, 255, 255, 0.34);
+
+  --dial-border: rgba(255, 255, 255, 0.08);
+  --dial-border-hover: rgba(255, 255, 255, 0.16);
+
+  --dial-shadow: 0 16px 50px rgba(0, 0, 0, 0.6);
+  --dial-shadow-collapsed: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --dial-shadow-dropdown: 0 12px 32px rgba(0, 0, 0, 0.55);
+}

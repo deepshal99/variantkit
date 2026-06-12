@@ -27,6 +27,12 @@ term here conflicts with how you named something, this file wins — rename the 
 | **Registry** | Map of variant key → component, per element. Used to render the active variant and to compute the prune list. |
 | **Set** (variant set) | An element plus its variants + registry + the shell that wires them. What the agent scaffolds. |
 | **DialKit config object** | The technical config you pass to `useDialKit` (controls + the `variant` select + the `finalize` action). The *implementation* of a Configuration. Don't say "config" when you mean the user-facing Configuration. |
+| **Archetype** | A per-element-family CHECKLIST of design axes (`variantkit/schemas/archetypes.ts`) used to assemble a complete Configuration — adapted per element and seeded from the project's values, never pasted as-is. |
+| **Section** | One design dimension's worth of controls (layout, surface, typography, color, motion, states) — the building blocks archetypes compose. |
+| **Paramify** | Wrapping an EXISTING component in its full Configuration (no variants) so the user can tune it live, then inline the result. |
+| **Transport** | The dev-only channel (vite plugin / Next route) that carries a Decision from Finalize into `.variantkit/decisions/`. Clipboard is the fallback. |
+| **Compare** | VariantBar's side-by-side mode: every variant rendered live in a grid (VariantStage). |
+| **Taste** | `.variantkit/TASTE.md` — grounded preferences distilled from resolved Decisions, read back before generating. |
 
 ## One sentence, all of it
 

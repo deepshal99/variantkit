@@ -1,6 +1,6 @@
 ---
 name: variantkit
-description: AI-assisted UI exploration. When the user asks to build, design, or change any user-facing UI (a component, screen, section, state, hero, card, layout, or visual treatment), generate 2-4 structural variants instead of one and wire them to a live DialKit panel so they can switch, tweak, finalize, and have the losers pruned to one clean component. Also handles "deslop" / "remove the AI slop" requests. Triggers on building/redesigning UI, "give me options/takes/variants", "explore directions", "deslop", "this looks AI-generated".
+description: AI-assisted UI exploration. When the user asks to build, design, or change any user-facing UI (a component, screen, section, state, hero, card, layout, or visual treatment), generate 2-4 structural variants instead of one and wire them to a live, FULL configuration panel so they can switch, tweak everything, finalize, and have the losers pruned to one clean component. Also wraps existing components in their own configuration panel on "paramify" / "let me tweak this" / "give me controls", applies pending decisions on "apply decision", and handles "deslop" / "remove the AI slop" requests. Triggers on building/redesigning UI, "give me options/takes/variants", "explore directions", "paramify", "let me tweak", "give me controls", "apply decision", "deslop", "this looks AI-generated".
 ---
 
 # VariantKit
@@ -39,8 +39,13 @@ import './variantkit/motion.css'        // stagger, press feedback, easings, red
 // render <App /> and <DialRoot /> as siblings
 ```
 
-The `Studio` helper handles finalize feedback in-button (the button morphs to "✓ Copied"),
-so no toast is needed. **Snapshots:** the panel's preset toolbar (≡+ / Version) saves a tuned
+The installer also wires the decision transport (vite plugin / Next API route), mounts
+`<DialRoot/>` + `<VariantBar/>` (tabs, keys 1..9, live Compare grid, Finalize) and the
+stylesheets automatically. Check or undo anytime: `npx github:deepshal99/variantkit doctor`
+(12 checks with fix-its) / `npx github:deepshal99/variantkit remove` (zero-residue).
+
+Finalize feedback is in-button (the button morphs to "✓ Saved" via the transport, or
+"✓ Copied" on the clipboard fallback), so no toast is needed. **Snapshots:** the panel's preset toolbar (≡+ / Version) saves a tuned
 variant — use it to keep two tunings and switch between them; Finalize acts on the active one.
 
 ## The rules that make this work (never violate)
@@ -102,6 +107,17 @@ is shown. `focusOnHover` expands the hovered element's folder — panel-side onl
 drawn over the rendered element. Mount `<DialRoot/>` once in the app root. Still author the
 variant components file-per-variant (recipe below) so the prune stays a clean delete.
 
+### The completeness bar (AGENT.md §7)
+
+A panel with 2-3 loose sliders is a failure: during exploration the panel must feel like
+the element's ACTUAL configuration panel. Every design literal a variant renders becomes a
+control (paramify rule). Non-trivial element ⇒ ≥4 folders, 12-25 controls; collapse the
+secondary ones. Use the archetype checklists in `variantkit/schemas/archetypes.ts`
+(button, card, hero, navbar, modal, form, table, list, badge, pricing, section) — they are
+checklists to ADAPT and seed from the project's real values, never sets to paste. Drop a
+control that is a variant's structural identity by destructuring; resolve token selects
+(shadow, font family) to CSS in the shell via `SHADOWS` / `FONT_STACKS`.
+
 ### Manual wiring (if not using the helper)
 
 File-per-variant. Only `index.tsx` wires the tool; each variant is a plain, self-contained
@@ -124,7 +140,7 @@ project's tokens.)
 ```tsx
 import { useDialKit } from 'dialkit'
 import { registry } from './registry'
-import { buildDecision, copyDecision, type ParamValue } from '../../core/buildDecision'
+import { buildDecision, submitDecision, type ParamValue } from '../../core/buildDecision'
 
 // Defaults = the project's real values (tokens / current styles), never invented literals.
 const DEFAULTS: Record<string, ParamValue> = { density: 'comfortable', accent: tokens.brand }
@@ -134,9 +150,9 @@ export default function ComponentName(props: { /* real props */ }) {
     variant: { type: 'select', options: ['a', 'b', 'c'], default: 'a' }, // omit when only one variant
     density: { type: 'select', options: ['compact', 'comfortable'], default: DEFAULTS.density },
     accent: DEFAULTS.accent as string,
-    finalize: { type: 'action', label: 'Finalize & copy decision' },
+    finalize: { type: 'action', label: 'Finalize' },
   }, {
-    onAction: () => copyDecision(buildDecision('ComponentName', v as Record<string, ParamValue>, DEFAULTS, registry)),
+    onAction: () => submitDecision(buildDecision('ComponentName', v as Record<string, ParamValue>, DEFAULTS, registry)),
   }) as Record<string, ParamValue>
 
   const Active = registry[String(v.variant)].component
@@ -155,14 +171,33 @@ Every variant must pass the deslop checklist below — generated UI must not loo
 
 ## Step 3 — finalize → prune
 
-Finalize copies a `decision.json`: `{ component, finalized, values, overridesFromDefault,
-prune[], note, status, timestamp }`. When the user hands it back, prune (mechanical — never
-move JSX between files):
+Finalize ships a `decision.json` (schema 2, dot-path values): `{ schema, component,
+finalized, values, overridesFromDefault, prune[], note, status, timestamp }` — through the
+dev transport into `.variantkit/decisions/<Component>.json`, or to the clipboard when no
+transport is running. On "apply decision" (or at session start) scan
+`.variantkit/decisions/*.json` for `status: "pending"`; a pasted decision applies the same
+way. Prune (mechanical — never move JSX between files):
 
 1. Inline `values` (as literals) into the winner file `variants/<finalized>.tsx`.
 2. Rename that file to `index.tsx`, overwriting the shell. Do NOT copy code by hand.
 3. Delete every loser in `prune` + leftover `variants/*`; delete `registry.ts`.
 4. Remove the DialKit wiring. If this was the last variant set, also drop `<DialRoot/>`.
+5. Resolve: append the decision (status "resolved") to `.variantkit/history/log.jsonl`,
+   delete the pending decision file.
+
+## Paramify an existing component (no variants)
+
+On "paramify this" / "let me tweak this" / "give me controls for this": wrap the EXISTING
+component in its full configuration per AGENT.md §7 — adapted archetype + finalize action,
+props fed from panel values; no registry, no variants/. On finalize: inline the chosen
+values as literals and strip the wiring completely.
+
+## Taste memory
+
+Before scaffolding, read `.variantkit/TASTE.md` if present — seed defaults toward the
+observed preferences, plus one variant that deliberately breaks the pattern. After
+resolving, if `.variantkit/history/log.jsonl` has ≥3 entries, distill/update `TASTE.md`
+per AGENT.md §8 — grounded claims only, every bullet cites ≥2 decisions with real values.
 
 Self-check (all must hold): no file imports `dialkit` / `registry` / `buildDecision`;
 `variants/` and `registry.ts` gone; `index.tsx` renders the winner with values inlined; the

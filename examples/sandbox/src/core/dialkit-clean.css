@@ -1,0 +1,46 @@
+/* VariantKit panel cleanup for DialKit.
+   - Hide only the "Copy parameters" clipboard button (redundant with Finalize). The preset
+     toolbar STAYS — it's VariantKit's snapshot mechanism (save a tuned variant, switch, then
+     finalize the active one). See AGENT.md "Snapshots".
+   - Remove folder/header dividers so the panel reads on spacing alone, like DialKit's own UI. */
+.dialkit-root [title='Copy parameters'] {
+  display: none !important;
+}
+
+/* DialKit ships the expanded panel with zero bottom padding (10px 12px 0 12px), so the last
+   control — usually Finalize — sits flush against the edge. Match the sides. The collapsed
+   bubble sets its own uniform 12px, so this only affects the open panel. */
+.dialkit-root .dialkit-panel-inner:not([data-collapsed='true']) {
+  padding-bottom: 12px;
+}
+.dialkit-root .dialkit-panel-header {
+  border-bottom: none !important;
+}
+.dialkit-root .dialkit-folder {
+  border-top: none !important;
+  border-bottom: none !important;
+}
+
+/* The injected panel theme toggle — placed just left of DialKit's settings icon (right:12). */
+.dialkit-root .vk-theme-toggle {
+  position: absolute;
+  top: 6px;
+  right: 40px;
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  color: var(--dial-text-secondary);
+  z-index: 2;
+  transition: background-color 140ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.dialkit-root .vk-theme-toggle:hover {
+  background: var(--dial-surface-hover);
+}
+.dialkit-root .vk-theme-toggle:active {
+  transform: scale(0.92);
+}

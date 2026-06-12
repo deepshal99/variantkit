@@ -1,6 +1,6 @@
 # VariantKit — Agent Contract
 
-`contractVersion: 0.1`
+`contractVersion: 0.3`
 
 VariantKit lets a developer generate N structural variants of a component, choose one
 live in the running app, tweak its params, and finalize a winner. You (the coding agent)
@@ -93,7 +93,7 @@ defaults object.
 ```tsx
 import { useDialKit } from 'dialkit'
 import { registry } from './registry'
-import { buildDecision, copyDecision } from '../../variantkit/buildDecision'
+import { buildDecision, submitDecision } from '../../variantkit/buildDecision'
 import { panelConfig, defaultsOf, regOf } from '../../variantkit/configs'
 
 const KEYS = ['ledger', 'slab', 'inverse']
@@ -110,7 +110,7 @@ const cfg = panelConfig(
 
 export default function PricingCard(props: { plan?: string }) {
   const v = useDialKit('PricingCard', cfg, {
-    onAction: () => copyDecision(buildDecision('PricingCard', v, defaultsOf(cfg), regOf(KEYS))),
+    onAction: () => submitDecision(buildDecision('PricingCard', v, defaultsOf(cfg), regOf(KEYS))),
   })
   const Active = registry[v.variant].component
   return <Active {...props} density={v.density} accent={v.accent} showAnnualToggle={v.showAnnualToggle} />
@@ -129,7 +129,11 @@ committing?* Those are the controls. Nothing else.
 - **Any count.** A button might need two controls; a data table might need ten in two
   folders. More is not better — show what this element needs, nothing it doesn't.
 - **Never copy a control set** from this file, another element, or a previous project. The
-  set that repeats across unrelated elements is by definition not contextual.
+  set that repeats across unrelated elements is by definition not contextual. (The archetype
+  schemas in §7 are checklists of design axes to ADAPT and seed from the code — not sets to
+  paste.)
+- **Cover the element fully.** Contextual does not mean minimal — §7 sets the completeness
+  bar: the panel should feel like the element's actual configuration panel.
 - **Defaults are the project's values.** Pull them from the design tokens or the element's
   current styles. If you typed a literal that exists nowhere in the project, it's wrong.
 
@@ -151,7 +155,7 @@ const combined = Object.fromEntries(
 const all = useDialKit('VariantKit', combined, {
   onAction: (path) => {
     const e = ELEMENTS.find((x) => x.name === path.split('.')[0])!
-    copyDecision(buildDecision(e.name, all[e.name], defaultsOf(panelConfig(e.controls, e.keys)), regOf(e.keys)))
+    submitDecision(buildDecision(e.name, all[e.name], defaultsOf(panelConfig(e.controls, e.keys)), regOf(e.keys)))
   },
 })
 // values are nested: all.Hero.headingSize, all.PricingCard.density, ...
@@ -179,6 +183,22 @@ it ships). For a SINGLE element, just pass one entry (one folder, nothing extra)
 variant key, no variant dropdown is shown. DialKit's `<DialRoot/>` must be mounted once in
 the app root.
 
+### On-canvas chrome — VariantBar and VariantStage
+
+`<VariantBar/>` (`variantkit/react/VariantBar`) mounts once next to `<DialRoot/>`: a slim
+bottom bar with variant tabs, keys 1..9, a live side-by-side **Compare** toggle, and
+Finalize. It auto-discovers every variant set from DialKit's store — both the classic
+shell layout and the Studio's folder-per-element layout — no per-component wiring. It is
+tool chrome at the screen edge; it never decorates the rendered element itself.
+
+For the classic single-set shell, render through `<VariantStage/>`
+(`variantkit/react/VariantStage`) instead of a bare `<Active/>` — same render normally,
+and a live grid of all variants when Compare is on (clicking a cell selects it):
+
+```tsx
+return <VariantStage name="PricingCard" registry={registry} active={String(v.variant)} props={variantProps} />
+```
+
 ### Hide the redundant copy button
 
 Import these three stylesheets once (the `Studio` helper assumes them):
@@ -200,18 +220,24 @@ preset captures variant+values, and DialKit restores them atomically on switch. 
 on the **active** snapshot. So: tune → ≡+ to snapshot → tune differently → switch between them
 → Finalize the winner. (We hide only the redundant Copy button, not the preset toolbar.)
 
-## 3. `decision.json` schema
+## 3. `decision.json` schema (schema 2)
 
-Finalize writes one decision per component (clipboard in v0; file later).
+Finalize writes one decision per component. Values are **dot-path flattened** — folder
+groups become `"surface.radius"` — so grouped configurations stay flat and inlineable.
 
 ```jsonc
 {
+  "schema": 2,
   "component": "PricingCard",
   "finalized": "slab",                                  // the winning variant key
-  "values": { "density": "compact", "accent": "#175048" },  // final live values to inline
-  "overridesFromDefault": {                                 // only changed keys; the taste signal
+  "values": {                                           // final live values to inline
+    "density": "compact",
+    "surface.radius": 12,
+    "accent": "#175048"
+  },
+  "overridesFromDefault": {                             // only changed keys; the taste signal
     "density": { "from": "comfortable", "to": "compact" },
-    "accent": { "from": "#1F5E54", "to": "#175048" }        // from = the project's own default
+    "accent": { "from": "#1F5E54", "to": "#175048" }    // from = the project's own default
   },
   "prune": ["ledger", "inverse"],                       // loser keys to delete
   "note": "",
@@ -220,9 +246,21 @@ Finalize writes one decision per component (clipboard in v0; file later).
 }
 ```
 
+When inlining (§4), a dot-path maps to the prop the shell derived from it: the prop fed by
+`v.surface.radius` gets the literal at `"surface.radius"`. Token values (`"shadow": "lg"`)
+inline as the **resolved CSS** the shell produced, not the token string.
+
 ## 4. Prune algorithm (the reliable part)
 
-Given `decisions/<Component>.json` with `status: "pending"`:
+**Where decisions come from.** Finalize ships the decision through the dev transport
+(vite plugin / Next route) into `.variantkit/decisions/<Component>.json`. When no
+transport is running it falls back to the clipboard and the developer pastes it to you.
+
+**When to apply.** On "apply decision" / "apply the decision" — and at the start of any
+session in a VariantKit project — scan `.variantkit/decisions/*.json` for
+`status: "pending"` and prune each one. A pasted decision JSON is applied the same way.
+
+Given a decision with `status: "pending"`:
 
 1. **INLINE** the `values` into the winner file `variants/<finalized>.tsx` — replace the
    prop-driven values with the literals (so the component needs no incoming params).
@@ -231,7 +269,9 @@ Given `decisions/<Component>.json` with `status: "pending"`:
 3. **DELETE** every loser in `prune` plus any leftover `variants/*.tsx`; remove the now-empty
    `variants/` folder.
 4. **DELETE** `registry.ts`.
-5. Mark the decision `resolved`, append it to history, remove the pending decision file.
+5. Mark the decision `resolved`: append the decision (with `"status": "resolved"`) as one
+   line to `.variantkit/history/log.jsonl`, then delete
+   `.variantkit/decisions/<Component>.json`. For pasted decisions, append the same way.
 
 Net diff: deleted files + one renamed file + inlined literals. No JSX moved between files.
 
@@ -291,3 +331,98 @@ in the browser (before/after) → report a table (`# | tell | file:line | remove
 **Scope note:** this applies to the **generated app components** (the variants). It does NOT
 apply to the VariantKit/DialKit dev panel — the panel's mono labels, amber accent, and pill
 tabs are an intentional, system-wide tool chrome, not slop.
+
+---
+
+## 7. Full configuration, not three sliders — the completeness bar
+
+The §0 rules stand: controls come from the element, defaults come from the code. This
+section adds the other half: **a panel with 2-3 loose sliders is a failure.** During
+exploration the panel must feel like the element's actual configuration panel — covering
+every design decision the element really has, grouped the way a real settings panel would
+group them.
+
+**Paramify rule.** Every design literal a variant renders — px sizes, radii, colors, font
+sizes, weights, spacing, shadows, durations — becomes a control, fed through props from the
+shell. No hardcoded design value stays outside the panel during exploration, except a
+variant's structural identity (below).
+
+**Archetype checklists.** `variantkit/schemas/archetypes.ts` ships per-element-family
+checklists of design axes:
+
+`button · card · hero · navbar · modal · form · table · list · badge · pricing · section`
+
+built from section builders in `variantkit/schemas/sections.ts` (`layoutSection`,
+`surfaceSection`, `typographySection`, `colorSection`, `motionSection`, `statesSection`).
+They are **checklists to adapt, not sets to paste** (§2 authoring rules apply unchanged):
+
+- **Seed every default from the code.** Pass the element's rendered values as overrides —
+  `pricingArchetype({ surface: { radius: 18 }, color: { accent: tokens.brand } })` — so the
+  panel opens matching what's on screen. The builders' fallback values are scaffolding for
+  brand-new elements only; on an existing element, an unseeded default is a §0 violation.
+- **Adapt the set.** Drop axes this element doesn't have, add the ones it does (`extra`),
+  rename folders if the element thinks in different terms. Two unrelated elements ending up
+  with identical panels means you pasted, not adapted.
+- **Copy control shapes, never invent control types.** DialKit supports: slider
+  `[def,min,max,step?]`, boolean, text, color (hex), select, spring, easing, action, nested
+  folders (`_collapsed: true`).
+
+**Minimum bar.** Non-trivial element ⇒ ≥4 folders, 12-25 controls. Trivial element (icon,
+divider, single label) ⇒ a flat 3-5 control panel is fine. Collapse secondary folders.
+
+**Identity exception.** A control must be honest. If a value IS the variant's structural
+identity (the dark variant's background, the outlined variant's transparent surface), do
+not expose it — drop that control by destructuring and leave the literal in the variant:
+
+```ts
+const { bg: _bg, ...surface } = sections.surface  // variants own their surface bg
+```
+
+**Token resolution.** Selects may return tokens (`shadow: 'lg'`, `family: 'mono'`). The
+SHELL resolves tokens to CSS (`SHADOWS` / `FONT_STACKS` from the schemas) and passes plain
+CSS values as props. Variants never import from variantkit/schemas — they stay
+self-contained (§1).
+
+**Standalone paramify (no variants).** On "paramify this" / "let me tweak this" / "give me
+controls for this" for an EXISTING component: wrap it with a full configuration — no
+registry, no variants/ folder, no variant select. Just `useDialKit` (or a single-entry
+`Studio`) with the adapted archetype + a finalize action, props fed from panel values. On
+finalize: inline the final values back as literals and strip the wiring completely (§5
+self-check applies, minus the registry/variants boxes).
+
+---
+
+## 8. Taste memory — decisions compound
+
+Every resolved decision is one line in `.variantkit/history/log.jsonl`. The
+`overridesFromDefault` fields are the developer telling you, with numbers, where your
+defaults were wrong. Use them.
+
+**Distill (after resolving, when history has ≥3 entries).** Write or update
+`.variantkit/TASTE.md` with observed preferences. Rules:
+
+- **Grounded only.** Every claim cites ≥2 decisions with the actual values. No claim from
+  a single data point; no speculation ("seems to like minimal" is banned — "finalized
+  radius 8-12 in 4/4 decisions, always below my default" is the format).
+- **Track the dimensions that repeat:** radius range, accent hue temperature, spacing
+  density (padding/gap direction vs default), shadow level, type scale, variant character
+  (which structural take keeps winning: dense/outlined/dark...).
+- **Keep it short** — a scannable bullet list, ≤15 lines, newest evidence first.
+- **Update, don't append forever:** revise existing bullets as new decisions land; drop
+  bullets the data stops supporting.
+
+Format:
+
+```markdown
+# Taste — observed from finalized decisions
+<!-- distilled by the agent from .variantkit/history/log.jsonl — grounded claims only -->
+
+- Radius lands 8-12 (18→12, 16→8, 12→10 across PricingCard, Hero, Modal). Default to 10.
+- Accents shift cooler + darker (#1F5E54→#175048, #3B82F6→#1D4ED8). Avoid warm accents.
+- Picks the densest structural take (slab 2x, compact-table 1x). Offer one dense variant first.
+```
+
+**Read back (before generating).** Before scaffolding any variant set or paramify panel,
+read `.variantkit/TASTE.md` if it exists. Seed defaults toward the observed preferences —
+and still include ONE variant that deliberately breaks the pattern, so taste keeps getting
+tested rather than ossified.

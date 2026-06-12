@@ -1,4 +1,5 @@
 {
+  "schema": 2,
   "component": "PricingCard",
   "finalized": "slab",
   "values": { "radius": 12, "accent": "#175048" },

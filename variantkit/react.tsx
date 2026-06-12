@@ -21,7 +21,7 @@ import { useEffect, useRef, useState, type ReactElement, type ReactNode } from '
 import { motion, MotionConfig } from 'motion/react'
 import { useDialKit } from 'dialkit'
 import { panelConfig, defaultsOf, regOf, type PanelConfig } from './configs'
-import { buildDecision, copyDecision, type ParamValue } from './buildDecision'
+import { buildDecision, submitDecision, type ParamValue } from './buildDecision'
 
 export interface ElementDef {
   /** Component name — becomes the folder title and the decision's component. */
@@ -46,7 +46,7 @@ export interface StudioProps {
   name?: string
   /** Expand the panel folder of the element you hover (panel-side only; no overlay on the UI). */
   focusOnHover?: boolean
-  /** Called after an element is finalized (decision already copied to clipboard). */
+  /** Called after an element is finalized (decision already submitted/copied). */
   onFinalize?: (decision: ReturnType<typeof buildDecision>) => void
 }
 
@@ -94,7 +94,8 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
       if (!e) return
       const slice = (all as Record<string, Record<string, ParamValue>>)[elName]
       const decision = buildDecision(elName, slice, defaultsOf(cfgFor(e)), regOf(e.keys))
-      copyDecision(decision) // also flashes the Finalize button to "✓ Copied"
+      // Dev transport first ("✓ Saved" -> .variantkit/decisions/), clipboard fallback ("✓ Copied").
+      submitDecision(decision)
       onFinalize?.(decision)
     },
   }) as Record<string, Record<string, ParamValue>>
