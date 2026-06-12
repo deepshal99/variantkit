@@ -296,6 +296,16 @@ function init() {
   }
   if (!DRY) copyFileSync(agentSrc, agentDest)
   did(`copy AGENT.md -> ${relative(target, agentDest)}`)
+  const namingSrc = join(REPO_ROOT, 'NAMING.md')
+  const namingDest = join(target, 'NAMING.md')
+  if (!existsSync(namingSrc)) {
+    warn('NAMING.md source missing — skipping (AGENT.md references it)')
+  } else if (existsSync(namingDest) && !readFileSync(namingDest, 'utf8').includes('VariantKit — Vocabulary')) {
+    warn('NAMING.md already exists and is not ours — left untouched')
+  } else {
+    if (!DRY) copyFileSync(namingSrc, namingDest)
+    did(`copy NAMING.md -> ${relative(target, namingDest)}`)
+  }
 
   // 4. decision transport
   head('4. decision transport')
@@ -438,10 +448,11 @@ function remove() {
     did(`delete ${relative(target, p)}/`)
   }
 
-  // AGENT.md (only the one we wrote)
-  for (const name of ['AGENT.md', 'AGENT.variantkit.md']) {
+  // AGENT.md + NAMING.md (only the ones we wrote)
+  for (const name of ['AGENT.md', 'AGENT.variantkit.md', 'NAMING.md']) {
     const p = join(target, name)
-    if (existsSync(p) && readFileSync(p, 'utf8').includes('VariantKit — Agent Contract')) {
+    const marker = name === 'NAMING.md' ? 'VariantKit — Vocabulary' : 'VariantKit — Agent Contract'
+    if (existsSync(p) && readFileSync(p, 'utf8').includes(marker)) {
       if (!DRY) rmSync(p)
       did(`delete ${name}`)
     }

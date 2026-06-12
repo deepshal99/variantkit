@@ -22,7 +22,7 @@ Check for `dialkit` in the project's deps and a `buildDecision.ts` (usually `src
 If missing, set it up from the project root:
 
 ```sh
-npx github:deepshal99/variantkit
+npx variantkit
 ```
 
 That installs `dialkit motion` + the runtime (`buildDecision`, `configs`, `react` Studio
@@ -41,8 +41,8 @@ import './variantkit/motion.css'        // stagger, press feedback, easings, red
 
 The installer also wires the decision transport (vite plugin / Next API route), mounts
 `<DialRoot/>` + `<VariantBar/>` (tabs, keys 1..9, live Compare grid, Finalize) and the
-stylesheets automatically. Check or undo anytime: `npx github:deepshal99/variantkit doctor`
-(12 checks with fix-its) / `npx github:deepshal99/variantkit remove` (zero-residue).
+stylesheets automatically. Check or undo anytime: `npx variantkit doctor`
+(15 checks with fix-its) / `npx variantkit remove` (zero-residue).
 
 Finalize feedback is in-button (the button morphs to "✓ Saved" via the transport, or
 "✓ Copied" on the clipboard fallback), so no toast is needed. **Snapshots:** the panel's preset toolbar (≡+ / Version) saves a tuned

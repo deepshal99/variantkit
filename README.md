@@ -9,9 +9,9 @@ keys 1-2-3, compare them side by side, drag sliders until it's right, hit **Fina
 and the losers are pruned from your codebase. What ships is a plain component with zero
 tool residue.
 
-![VariantKit demo: switching variants with keys, live compare grid, finalize](docs/demo.gif)
+![VariantKit demo: switching variants with keys, live compare grid, finalize](https://raw.githubusercontent.com/deepshal99/variantkit/main/docs/demo.gif)
 
-![VariantKit: three live variants, full contextual panel, compare grid, finalize bar](docs/demo-compare.png)
+![VariantKit: three live variants, full contextual panel, compare grid, finalize bar](https://raw.githubusercontent.com/deepshal99/variantkit/main/docs/demo-compare.png)
 
 Stop describing tweaks in chat. Tweak the thing, then hand your agent the decision.
 
@@ -20,8 +20,10 @@ Stop describing tweaks in chat. Tweak the thing, then hand your agent the decisi
 From inside your project (Vite or Next.js, React 18+):
 
 ```sh
-npx github:deepshal99/variantkit        # npm publish pending: npx variantkit
+npx variantkit
 ```
+
+(or straight from GitHub: `npx github:deepshal99/variantkit`)
 
 One command does everything:
 
@@ -35,8 +37,8 @@ One command does everything:
 Check or undo anytime:
 
 ```sh
-npx github:deepshal99/variantkit doctor   # 12 checks with fix-its
-npx github:deepshal99/variantkit remove   # zero-residue uninstall (git-clean verified)
+npx variantkit doctor    # 15 checks with fix-its
+npx variantkit remove    # zero-residue uninstall (git-clean verified)
 ```
 
 Flags: `--dry-run` `--skip-install` `--no-mount` `--no-skill` (init) · `--keep-deps` (remove)
@@ -90,7 +92,8 @@ against real data and layout — and removes itself when you decide.
 
 [DialKit](https://github.com/joshpuckett/dialkit) answers *"what number should this be?"*
 VariantKit answers *"which direction should this go?"* — and uses DialKit as its control
-panel (documented store API only; no fork, no patches).
+panel through its documented store API (no fork; the one patch-package patch is cosmetic —
+the panel's minimize/expand morph — and entirely optional).
 
 ## Repo map
 

@@ -5,7 +5,7 @@ and wires everything; see the [repo README](../README.md) for positioning and
 [docs/quickstart.md](../docs/quickstart.md) for usage.
 
 ```sh
-npx github:deepshal99/variantkit [init|doctor|remove] [targetDir] [flags]
+npx variantkit [init|doctor|remove] [targetDir] [flags]
 ```
 
 - `buildDecision.ts` — pure core: dot-path flatten (schema 2), override diff (taste

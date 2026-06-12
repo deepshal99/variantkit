@@ -8,7 +8,8 @@
   },
   "files": [
     "variantkit",
-    "AGENT.md"
+    "AGENT.md",
+    "NAMING.md"
   ],
   "scripts": {
     "init": "node variantkit/init.mjs"
