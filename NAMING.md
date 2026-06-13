@@ -8,12 +8,11 @@ term here conflicts with how you named something, this file wins — rename the 
 | Term | Means | Not to be called |
 |------|-------|------------------|
 | **Element** | The UI thing being designed: a pricing card, a button, a hero. The subject of a session. | "component" (too generic), "widget" |
-| **Variant** | One structural take on an element — different code/layout, same role (Slab vs Ledger vs Inverse). The agent generates several. | "version" (means snapshot), "option" (fine in plain English, but the type is `variant`) |
+| **Variant** | One structural take on an element — different code/layout, same role (Slab vs Ledger vs Inverse). The agent generates several. | "version", "option" (fine in plain English, but the type is `variant`) |
 | **Control** | One tunable setting of an element (radius, accent, padding). | "param" (ok internally), "knob" |
-| **Configuration** | The full set of controls exposed for an element — the settings panel for it. Authored per element by the agent, contextual; there is no predefined menu. | "config object" (that's the DialKit wiring, see below), "preset" (that word is reserved for DialKit's snapshot toolbar) |
+| **Configuration** | The full set of controls exposed for an element — the settings panel for it. Authored per element by the agent, contextual; there is no predefined menu. | "config object" (that's the DialKit wiring, see below), "preset" |
 | **Defaults** | The frozen reference values a variant ships with. The override diff is measured against these. | "initial" |
 | **Override** | A control whose value differs from its default — the "taste signal". The set of them = the **override diff**. | "change", "delta" |
-| **Snapshot** | A saved (variant + control values) state kept so you can compare two tunings of the same element. Implemented via DialKit's preset toolbar (≡+ / Version dropdown), reused. | — |
 | **Finalize** | Committing the chosen variant + its current values. Produces a decision. | "save", "submit" |
 | **Decision** | The machine-readable result of finalize: `{ component, finalized, values, overridesFromDefault, prune, … }`. The handoff to the agent. | "result", "output" |
 | **Prune** | The agent deleting the losing variants down to the clean winner. | "cleanup", "resolve" |
@@ -37,6 +36,5 @@ term here conflicts with how you named something, this file wins — rename the 
 ## One sentence, all of it
 
 > The agent scaffolds a **set** of **variants** for an **element**; you tune each variant's
-> **controls** (its **configuration**) in the **panel**, optionally keeping **snapshots** to
-> compare; you **finalize** the winner, which writes a **decision**; the agent **prunes** the
-> losers to a clean component.
+> **controls** (its **configuration**) in the **panel**; you **finalize** the winner, which
+> writes a **decision**; the agent **prunes** the losers to a clean component.

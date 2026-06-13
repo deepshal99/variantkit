@@ -1,9 +1,10 @@
 /* VariantKit panel cleanup for DialKit.
-   - Hide only the "Copy parameters" clipboard button (redundant with Finalize). The preset
-     toolbar STAYS — it's VariantKit's snapshot mechanism (save a tuned variant, switch, then
-     finalize the active one). See AGENT.md "Snapshots".
+   - Hide DialKit's entire top toolbar row (the preset/"Version" manager + the "Copy
+     parameters" button). VariantKit has no snapshots concept: you pick a variant, tweak it,
+     and Finalize. The preset toolbar only confused people ("what is Version 1, why first?"),
+     so the whole row goes — leaving the variant selector as the first thing in the panel.
    - Remove folder/header dividers so the panel reads on spacing alone, like DialKit's own UI. */
-.dialkit-root [title='Copy parameters'] {
+.dialkit-root .dialkit-panel-toolbar {
   display: none !important;
 }
 
@@ -15,10 +16,83 @@
 }
 .dialkit-root .dialkit-panel-header {
   border-bottom: none !important;
+  /* The title row carried bottom spacing meant to clear the preset toolbar. With the toolbar
+     hidden that became a ~38px dead gap above the first control — reclaim it so the title sits
+     a normal step above the panel body. */
+  margin-bottom: 2px !important;
+}
+.dialkit-root .dialkit-panel-header .dialkit-folder-header-top {
+  padding-bottom: 0 !important;
 }
 .dialkit-root .dialkit-folder {
   border-top: none !important;
   border-bottom: none !important;
+}
+
+/* ── Variant selector: clean separated selection pills ───────────────────────────────────
+   DialKit renders the `variant` control (segmented:true) as a row of separated pills, one
+   per take, instead of a dropdown. The variant is the panel's hero choice, so every option
+   stays visible. Pills wrap to new lines when labels are long or the panel is narrow — they
+   never overflow or clip the row. */
+.dialkit-root .dialkit-vk-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  align-items: stretch;
+}
+.dialkit-root .dialkit-vk-pills .dialkit-select-label {
+  /* sits on its own line above the pills */
+  padding: 0 2px;
+}
+.dialkit-root .dialkit-vk-pills-track {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.dialkit-root .dialkit-vk-pill {
+  /* DialKit absolutely-positions panel buttons; pills must opt back into normal flow so the
+     track lays them out in a wrapping row. Inactive pills are quiet (faint surface, no border)
+     so the selected one carries all the emphasis. */
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 60px;
+  max-width: 100%;
+  padding: 7px 11px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: var(--dial-surface-subtle);
+  color: var(--dial-text-secondary);
+  font: 500 12px/1.15 system-ui, -apple-system, 'Segoe UI', sans-serif;
+  letter-spacing: 0.01em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  -webkit-font-smoothing: antialiased;
+  transition:
+    background-color 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    color 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.dialkit-root .dialkit-vk-pill:hover {
+  background: var(--dial-surface-hover);
+  color: var(--dial-text-primary);
+}
+.dialkit-root .dialkit-vk-pill:active {
+  transform: scale(0.96);
+}
+.dialkit-root .dialkit-vk-pill[data-active='true'] {
+  /* Solid fill + a small lift = unmistakable selection. `--dial-glass-bg` is the solid panel
+     colour (dark in dark mode, light in light mode), so the label always contrasts the fill. */
+  background: var(--dial-text-primary);
+  color: var(--dial-glass-bg);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 3px 10px rgba(0, 0, 0, 0.13);
+}
+.dialkit-root .dialkit-vk-pill[data-active='true']:hover {
+  color: var(--dial-glass-bg);
 }
 
 /* The injected panel theme toggle — placed just left of DialKit's settings icon (right:12). */

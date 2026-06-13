@@ -10,7 +10,7 @@ do two things: **scaffold** variant sets when asked for "options/variants/takes"
 Pruning must be reliable. It is mostly file deletion plus one file rename. Never move JSX
 between files by hand. Follow this exactly.
 
-**Vocabulary:** element, variant, control, configuration, snapshot, finalize, decision, prune
+**Vocabulary:** element, variant, control, configuration, finalize, decision, prune
 — one word per concept, defined in `NAMING.md`. Use them consistently.
 
 ---
@@ -19,9 +19,10 @@ between files by hand. Follow this exactly.
 
 **Default to divergence.** When the developer asks you to build or change any user-facing
 UI — a component, screen, section, state, layout, or visual treatment — do NOT commit to a
-single interpretation. Scaffold a **variant set** of 2–4 structural takes (§1) and let the
-developer choose live in the panel, then finalize. Generating N is the point; one is the
-exception.
+single interpretation. Scaffold a **variant set** of **2-3 structural takes** (§1) — a 4th
+only when the directions genuinely diverge, since each take is more generation the developer
+waits on — and let them choose live in the panel, then finalize. Generating N is the point;
+one is the exception.
 
 Offer variants especially when:
 - the request is aesthetic or open-ended ("a pricing card", "make this nicer", "a hero")
@@ -199,26 +200,18 @@ and a live grid of all variants when Compare is on (clicking a cell selects it):
 return <VariantStage name="PricingCard" registry={registry} active={String(v.variant)} props={variantProps} />
 ```
 
-### Hide the redundant copy button
+### Hide DialKit's top toolbar
 
 Import these three stylesheets once (the `Studio` helper assumes them):
-- `variantkit/dialkit-clean.css` — hides the redundant "Copy parameters" button and the
-  folder/header dividers (panel reads on spacing, like DialKit's own UI). **Keeps the preset
-  toolbar** — that's the snapshot mechanism (below).
+- `variantkit/dialkit-clean.css` — hides DialKit's entire top toolbar row (the preset/"Version"
+  manager + the "Copy parameters" button) and the folder/header dividers (panel reads on
+  spacing, like DialKit's own UI). VariantKit has no snapshots concept: the variant selector is
+  the first thing in the panel — pick a variant, tweak it, Finalize.
 - `variantkit/dialkit-dark.css` — the dark palette DialKit lacks. Call `useDialkitTheme()`
   (from `variantkit/react`) once: it applies the theme, persists it, and injects a sun/moon
   toggle into the panel header so the user flips the panel's light/dark right there.
 - `variantkit/motion.css` — press feedback, theme-switch cross-fade, reduced-motion. Scoped
   strictly to the panel chrome; it never styles or animates the project's UI.
-
-### Snapshots — keep two tunings and compare
-
-A **Snapshot** = a saved (variant + control values) state, so you can keep two tunings of one
-element (Slab/12/green vs Inverse/4/amber) and pick one. This is DialKit's **preset toolbar**
-(the ≡+ "add" and the Version dropdown), reused: because the variant is itself a control, a
-preset captures variant+values, and DialKit restores them atomically on switch. Finalize acts
-on the **active** snapshot. So: tune → ≡+ to snapshot → tune differently → switch between them
-→ Finalize the winner. (We hide only the redundant Copy button, not the preset toolbar.)
 
 ## 3. `decision.json` schema (schema 2)
 
@@ -337,15 +330,28 @@ tabs are an intentional, system-wide tool chrome, not slop.
 ## 7. Full configuration, not three sliders — the completeness bar
 
 The §0 rules stand: controls come from the element, defaults come from the code. This
-section adds the other half: **a panel with 2-3 loose sliders is a failure.** During
-exploration the panel must feel like the element's actual configuration panel — covering
-every design decision the element really has, grouped the way a real settings panel would
-group them.
+section adds the other half: for a rich element, **a panel with 2-3 loose sliders is a
+failure.** During exploration the panel must feel like the element's actual configuration
+panel — covering every design decision the element really has, grouped the way a real
+settings panel would group them.
 
-**Paramify rule.** Every design literal a variant renders — px sizes, radii, colors, font
-sizes, weights, spacing, shadows, durations — becomes a control, fed through props from the
-shell. No hardcoded design value stays outside the panel during exploration, except a
-variant's structural identity (below).
+But **scale the panel to the element.** Every control and every variant is generation the
+developer waits on — over-building a button into 20 controls is what makes VariantKit feel
+slow for no payoff. Match the work to the ask (see the minimum bar below).
+
+**Paramify rule — expose the decisions, not every number.** A control earns its place only
+if a developer would plausibly reach for it while exploring THIS element. Run that test over
+every design literal a variant renders — px sizes, radii, colors, font sizes, weights,
+spacing, shadows, durations: if it's a real, tweakable design decision, it becomes a control
+fed from the shell; if it's a fixed structural constant, a value the layout simply dictates,
+or something nobody would touch, leave it inline. The bar is *"would they turn this dial?"*,
+not *"is there a number here?"*. No **meaningful** design value stays outside the panel — and
+no useless one clutters it. (A variant's structural identity always stays inline — see below.)
+
+Curating is the job, not a shortcut. A panel of 8 controls that all matter beats one of 20
+where half are noise — the developer scans every row, so each junk control is a small tax.
+When a control feels borderline, drop it (or collapse it into a secondary folder); the
+developer can always ask for more.
 
 **Archetype checklists.** `variantkit/schemas/archetypes.ts` ships per-element-family
 checklists of design axes:
@@ -367,8 +373,15 @@ They are **checklists to adapt, not sets to paste** (§2 authoring rules apply u
   `[def,min,max,step?]`, boolean, text, color (hex), select, spring, easing, action, nested
   folders (`_collapsed: true`).
 
-**Minimum bar.** Non-trivial element ⇒ ≥4 folders, 12-25 controls. Trivial element (icon,
-divider, single label) ⇒ a flat 3-5 control panel is fine. Collapse secondary folders.
+**Proportional bar** — size the panel to the element, smallest sufficient first:
+- **Trivial** (icon, divider, single label, tag) ⇒ a flat 3-5 control panel.
+- **Small** (button, badge, single input, chip) ⇒ the ~3-8 controls that genuinely matter; one
+  or two folders at most. Resist padding it out.
+- **Rich** (hero, pricing card, navbar, modal, form, table) ⇒ the full set: ≥4 folders,
+  ~12-25 controls, secondary folders collapsed.
+
+When unsure between two tiers, build the smaller one — an under-built panel is a quick add;
+an over-built one already cost the developer the wait.
 
 **Identity exception.** A control must be honest. If a value IS the variant's structural
 identity (the dark variant's background, the outlined variant's transparent surface), do

@@ -67,8 +67,6 @@ Flags: `--dry-run` `--skip-install` `--no-mount` `--no-skill` (init) · `--keep-
 
 - **Studio** — exploring several elements at once? One panel, a folder per element, each
   with its own controls and Finalize; hovering an element focuses its folder.
-- **Snapshots** — keep two tunings of the same element (DialKit's preset toolbar) and
-  switch between them; Finalize acts on the active one.
 - **Panel polish** — dark mode with a header toggle, a delightful minimize/expand morph
   (shipped as a patch-package patch), micro-motion. All panel-side: nothing is ever drawn
   over your UI.

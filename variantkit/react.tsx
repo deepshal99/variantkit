@@ -77,23 +77,39 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
   const elsRef = useRef(elements)
   elsRef.current = elements
 
-  // One combined config: a folder per element, first open and the rest collapsed. The
-  // finalize button's "✓ Copied" feedback is handled inside copyDecision (panel-side, no
-  // overlay), so the label stays a plain "Finalize <name>" here.
+  // Build the combined config. With ONE element, a per-element folder is pure redundancy —
+  // the panel title already names it, so a "Button" folder under "Button Lab" just adds a
+  // confusing second hierarchy level. So flatten: the lone element's controls sit at the panel
+  // root. With 2+ elements, give each its own folder (first open, rest collapsed) — that's
+  // where the grouping earns its keep. The finalize button's "✓ Copied" feedback is handled
+  // inside copyDecision (panel-side), so the label stays a plain "Finalize <name>".
+  const single = elements.length === 1
   const combined: Record<string, unknown> = {}
-  elements.forEach((e, i) => {
+  if (single) {
+    const e = elements[0]
     const base = cfgFor(e)
-    const finalize = { ...(base.finalize as object), label: `Finalize ${e.name}` }
-    combined[e.name] = { ...base, finalize, _collapsed: i !== 0 }
-  })
+    Object.assign(combined, base, {
+      finalize: { ...(base.finalize as object), label: `Finalize ${e.name}` },
+    })
+  } else {
+    elements.forEach((e, i) => {
+      const base = cfgFor(e)
+      const finalize = { ...(base.finalize as object), label: `Finalize ${e.name}` }
+      combined[e.name] = { ...base, finalize, _collapsed: i !== 0 }
+    })
+  }
 
   const all = useDialKit(name, combined as never, {
     onAction: (path: string) => {
-      const elName = path.split('.')[0]
-      const e = elsRef.current.find((x) => x.name === elName)
+      // Single element → its finalize lives at the root (path === 'finalize'), and its values
+      // ARE `all`. Multiple → the element name prefixes the path and `all[name]` is its slice.
+      const e = single ? elsRef.current[0] : elsRef.current.find((x) => x.name === path.split('.')[0])
       if (!e) return
-      const slice = (all as Record<string, Record<string, ParamValue>>)[elName]
-      const decision = buildDecision(elName, slice, defaultsOf(cfgFor(e)), regOf(e.keys))
+      const slice = (single ? all : (all as Record<string, Record<string, ParamValue>>)[e.name]) as Record<
+        string,
+        ParamValue
+      >
+      const decision = buildDecision(e.name, slice, defaultsOf(cfgFor(e)), regOf(e.keys))
       // Dev transport first ("✓ Saved" -> .variantkit/decisions/), clipboard fallback ("✓ Copied").
       submitDecision(decision)
       onFinalize?.(decision)
@@ -101,15 +117,17 @@ export function Studio({ elements, name = 'VariantKit', focusOnHover, onFinalize
   }) as Record<string, Record<string, ParamValue>>
 
   useEffect(() => {
-    if (focusOnHover) focusFolder(focused)
-  }, [focused, focusOnHover])
+    // Focus-on-hover only applies to the multi-element layout (it toggles per-element folders).
+    // With a single flattened element there are no element folders to focus.
+    if (focusOnHover && !single) focusFolder(focused)
+  }, [focused, focusOnHover, single])
 
   // Render the elements as-is — VariantKit adds no layout, spacing, alignment, rings, or
   // badges around the project's UI. The host page owns presentation entirely.
   return (
     <MotionConfig reducedMotion="user">
       {elements.map((e) => {
-        const slice = all[e.name]
+        const slice = single ? (all as unknown as Record<string, ParamValue>) : all[e.name]
         if (!slice) return null
         const variant = e.keys.length > 1 ? String(slice.variant) : e.keys[0]
         return (

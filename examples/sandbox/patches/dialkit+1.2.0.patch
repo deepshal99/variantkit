@@ -1,7 +1,16 @@
 diff --git a/node_modules/dialkit/dist/index.cjs b/node_modules/dialkit/dist/index.cjs
-index d9f4837..4bf4e6d 100644
+index d9f4837..385c7dc 100644
 --- a/node_modules/dialkit/dist/index.cjs
 +++ b/node_modules/dialkit/dist/index.cjs
+@@ -337,7 +337,7 @@ var DialStoreClass = class {
+       } else if (this.isActionConfig(value)) {
+         controls.push({ type: "action", path, label: value.label || label });
+       } else if (this.isSelectConfig(value)) {
+-        controls.push({ type: "select", path, label, options: value.options });
++        controls.push({ type: "select", path, label, options: value.options, segmented: value.segmented });
+       } else if (this.isColorConfig(value)) {
+         controls.push({ type: "color", path, label });
+       } else if (this.isTextConfig(value)) {
 @@ -1006,8 +1006,9 @@ function Folder({ title, children, defaultOpen = true, isRoot = false, inline =
          style: panelStyle,
          onClick: !isOpen ? handleToggle : void 0,
@@ -14,10 +23,44 @@ index d9f4837..4bf4e6d 100644
          children: folderContent
        }
      );
+@@ -1853,6 +1854,15 @@ function normalizeOptions(options) {
+     (opt) => typeof opt === "string" ? { value: opt, label: toTitleCase(opt) } : opt
+   );
+ }
++function VKSegmented({ label, value, options, onChange }) {
++  const normalized = normalizeOptions(options);
++  return (0, import_jsx_runtime11.jsxs)("div", { className: "dialkit-vk-pills", children: [
++    (0, import_jsx_runtime11.jsx)("span", { className: "dialkit-select-label", children: label }),
++    (0, import_jsx_runtime11.jsxs)("div", { className: "dialkit-vk-pills-track", children: normalized.map(function(o) {
++      return (0, import_jsx_runtime11.jsx)("button", { type: "button", className: "dialkit-vk-pill", "data-active": o.value === value ? "true" : "false", title: o.label, onClick: function() { return onChange(o.value); }, children: o.label }, o.value);
++    }) })
++  ] });
++}
+ function SelectControl({ label, value, options, onChange }) {
+   const [isOpen, setIsOpen] = (0, import_react10.useState)(false);
+   const triggerRef = (0, import_react10.useRef)(null);
+@@ -2266,7 +2276,7 @@ Apply these values as the new defaults in the useDialKit call.`;
+         );
+       case "select":
+         return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
+-          SelectControl,
++          (control.segmented ? VKSegmented : SelectControl),
+           {
+             label: control.label,
+             value,
 diff --git a/node_modules/dialkit/dist/index.js b/node_modules/dialkit/dist/index.js
-index f8d8baf..7a0e7b3 100644
+index f8d8baf..a58300a 100644
 --- a/node_modules/dialkit/dist/index.js
 +++ b/node_modules/dialkit/dist/index.js
+@@ -297,7 +297,7 @@ var DialStoreClass = class {
+       } else if (this.isActionConfig(value)) {
+         controls.push({ type: "action", path, label: value.label || label });
+       } else if (this.isSelectConfig(value)) {
+-        controls.push({ type: "select", path, label, options: value.options });
++        controls.push({ type: "select", path, label, options: value.options, segmented: value.segmented });
+       } else if (this.isColorConfig(value)) {
+         controls.push({ type: "color", path, label });
+       } else if (this.isTextConfig(value)) {
 @@ -966,8 +966,9 @@ function Folder({ title, children, defaultOpen = true, isRoot = false, inline =
          style: panelStyle,
          onClick: !isOpen ? handleToggle : void 0,
@@ -30,3 +73,28 @@ index f8d8baf..7a0e7b3 100644
          children: folderContent
        }
      );
+@@ -1813,6 +1814,15 @@ function normalizeOptions(options) {
+     (opt) => typeof opt === "string" ? { value: opt, label: toTitleCase(opt) } : opt
+   );
+ }
++function VKSegmented({ label, value, options, onChange }) {
++  const normalized = normalizeOptions(options);
++  return jsxs10("div", { className: "dialkit-vk-pills", children: [
++    jsx11("span", { className: "dialkit-select-label", children: label }),
++    jsxs10("div", { className: "dialkit-vk-pills-track", children: normalized.map(function(o) {
++      return jsx11("button", { type: "button", className: "dialkit-vk-pill", "data-active": o.value === value ? "true" : "false", title: o.label, onClick: function() { return onChange(o.value); }, children: o.label }, o.value);
++    }) })
++  ] });
++}
+ function SelectControl({ label, value, options, onChange }) {
+   const [isOpen, setIsOpen] = useState6(false);
+   const triggerRef = useRef8(null);
+@@ -2226,7 +2236,7 @@ Apply these values as the new defaults in the useDialKit call.`;
+         );
+       case "select":
+         return /* @__PURE__ */ jsx14(
+-          SelectControl,
++          (control.segmented ? VKSegmented : SelectControl),
+           {
+             label: control.label,
+             value,

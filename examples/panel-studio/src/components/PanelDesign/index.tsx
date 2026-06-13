@@ -10,7 +10,7 @@ export default function PanelDesign() {
   const v = useDialKit(
     'PanelDesign',
     {
-      variant: { type: 'select', options: ['clean', 'dark', 'mono'], default: 'clean' },
+      variant: { type: 'select', options: ['clean', 'dark', 'mono'], default: 'clean', segmented: true },
       radius: [DEFAULTS.radius as number, 0, 28],
       accent: DEFAULTS.accent as string,
       finalize: { type: 'action', label: 'Finalize panel design' },

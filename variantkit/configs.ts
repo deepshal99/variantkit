@@ -38,8 +38,11 @@ export function panelConfig(
   opts?: { finalizeLabel?: string; component?: string },
 ): PanelConfig {
   return {
+    // `segmented: true` makes DialKit render the variant as clean separated selection pills
+    // (one per take) instead of a dropdown — the variant is the panel's hero choice, so it
+    // shows every option at a glance. Pills wrap when names are long / the panel is narrow.
     ...(variantKeys.length > 1
-      ? { variant: { type: 'select', options: variantKeys, default: variantKeys[0] } }
+      ? { variant: { type: 'select', options: variantKeys, default: variantKeys[0], segmented: true } }
       : {}),
     ...controls,
     finalize: { type: 'action', label: opts?.finalizeLabel ?? `Finalize ${opts?.component ?? ''}`.trim() },

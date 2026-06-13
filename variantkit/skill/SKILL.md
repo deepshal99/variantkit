@@ -13,8 +13,10 @@ it and prefer it over this summary.
 ## When to use (proactively)
 
 Trigger whenever the user asks to build or change user-facing UI and the result is open-ended
-(aesthetic, layout, tone, structure, density). Default to offering 2-4 variants. Skip only for
-mechanical, exactly-specified changes, or when the user says "just one".
+(aesthetic, layout, tone, structure, density). **Default to 2-3 variants** — reach for a 4th
+only when the directions genuinely diverge, since each variant is more generation the developer
+waits on. Skip variants entirely for mechanical, exactly-specified changes, or when the user
+says "just one".
 
 ## Step 1 — make sure the project is set up
 
@@ -33,7 +35,7 @@ not a wrapper):
 ```tsx
 import { DialRoot } from 'dialkit'
 import 'dialkit/styles.css'
-import './variantkit/dialkit-clean.css' // hide redundant copy button + dividers (keeps snapshots)
+import './variantkit/dialkit-clean.css' // hide DialKit's preset toolbar + redundant copy button + dividers
 import './variantkit/dialkit-dark.css'  // optional dark palette; set data-theme="dark" on .dialkit-root
 import './variantkit/motion.css'        // stagger, press feedback, easings, reduced-motion
 // render <App /> and <DialRoot /> as siblings
@@ -45,8 +47,7 @@ stylesheets automatically. Check or undo anytime: `npx variantkit doctor`
 (15 checks with fix-its) / `npx variantkit remove` (zero-residue).
 
 Finalize feedback is in-button (the button morphs to "✓ Saved" via the transport, or
-"✓ Copied" on the clipboard fallback), so no toast is needed. **Snapshots:** the panel's preset toolbar (≡+ / Version) saves a tuned
-variant — use it to keep two tunings and switch between them; Finalize acts on the active one.
+"✓ Copied" on the clipboard fallback), so no toast is needed.
 
 ## The rules that make this work (never violate)
 
@@ -69,9 +70,8 @@ If you cannot run the installer (offline), you can still scaffold using the reci
 ## Vocabulary (use these exactly)
 
 **Element** = the thing being designed. **Variant** = one structural take on it. **Control** =
-one setting; **Configuration** = the contextual set of controls for an element. **Snapshot** =
-a saved variant+values state. **Finalize** → writes a **Decision** → agent **prunes** losers.
-Full glossary: `NAMING.md`.
+one setting; **Configuration** = the contextual set of controls for an element. **Finalize** →
+writes a **Decision** → agent **prunes** losers. Full glossary: `NAMING.md`.
 
 ## Step 2 — scaffold a variant set
 
@@ -107,16 +107,28 @@ is shown. `focusOnHover` expands the hovered element's folder — panel-side onl
 drawn over the rendered element. Mount `<DialRoot/>` once in the app root. Still author the
 variant components file-per-variant (recipe below) so the prune stays a clean delete.
 
-### The completeness bar (AGENT.md §7)
+### The completeness bar — scale it to the element (AGENT.md §7)
 
-A panel with 2-3 loose sliders is a failure: during exploration the panel must feel like
-the element's ACTUAL configuration panel. Every design literal a variant renders becomes a
-control (paramify rule). Non-trivial element ⇒ ≥4 folders, 12-25 controls; collapse the
-secondary ones. Use the archetype checklists in `variantkit/schemas/archetypes.ts`
-(button, card, hero, navbar, modal, form, table, list, badge, pricing, section) — they are
-checklists to ADAPT and seed from the project's real values, never sets to paste. Drop a
-control that is a variant's structural identity by destructuring; resolve token selects
-(shadow, font family) to CSS in the shell via `SHADOWS` / `FONT_STACKS`.
+The panel must feel like the element's ACTUAL configuration panel, not 2-3 loose sliders —
+but **match the work to the element**, because every control and every variant is generation
+the developer waits on. Scale it:
+- **Small/simple element** (button, badge, single input, tag): the few controls that genuinely
+  matter — usually ~3-8. Do NOT manufacture 20 controls for a button; that just makes
+  VariantKit feel slow with no payoff.
+- **Rich element** (hero, pricing card, navbar, modal, form): earn the full set — ≥4 folders,
+  ~12-25 controls — collapsing the secondary ones.
+
+**Expose the decisions, not every number (paramify rule).** A control earns its place only if
+the developer would plausibly reach for it on THIS element. A design literal that's a real,
+tweakable decision becomes a control; a fixed structural constant, a value the layout dictates,
+or anything nobody would touch stays inline. The bar is "would they turn this dial?", not "is
+there a number here?" — 8 controls that all matter beat 20 where half are noise (every junk row
+is a small tax the developer pays scanning the panel). A literal that IS a variant's structural
+identity is dropped by destructuring, not exposed. Use the archetype checklists in
+`variantkit/schemas/archetypes.ts` (button, card, hero, navbar, modal, form, table, list, badge,
+pricing, section) — checklists to ADAPT and seed from the project's real values, never sets to
+paste. Resolve token selects (shadow, font family) to CSS in the
+shell via `SHADOWS` / `FONT_STACKS`.
 
 ### Manual wiring (if not using the helper)
 
@@ -133,7 +145,9 @@ ComponentName/
     <c>.tsx
 ```
 
-`index.tsx` — variant = a DialKit `select`, your authored controls, finalize = an `action`.
+`index.tsx` — variant = a DialKit `select` with `segmented: true` (renders as clean
+separated selection pills, one per take, instead of a dropdown), your authored controls,
+finalize = an `action`.
 (Control names/defaults below are placeholders — derive yours from the element + the
 project's tokens.)
 
@@ -147,7 +161,7 @@ const DEFAULTS: Record<string, ParamValue> = { density: 'comfortable', accent: t
 
 export default function ComponentName(props: { /* real props */ }) {
   const v = useDialKit('ComponentName', {
-    variant: { type: 'select', options: ['a', 'b', 'c'], default: 'a' }, // omit when only one variant
+    variant: { type: 'select', options: ['a', 'b', 'c'], default: 'a', segmented: true }, // pills, not a dropdown; omit when only one variant
     density: { type: 'select', options: ['compact', 'comfortable'], default: DEFAULTS.density },
     accent: DEFAULTS.accent as string,
     finalize: { type: 'action', label: 'Finalize' },
