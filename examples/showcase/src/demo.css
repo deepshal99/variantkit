@@ -1,0 +1,196 @@
+/* Showcase chrome — the demo's own page, switcher, and a few element keyframes. None of this
+   styles the VariantKit panel (that's the package's own CSS); it only dresses the host page so
+   each "project" feels like a different product. */
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* ── App shell ──────────────────────────────────────────────────────────────────────────── */
+.shell {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: background 600ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* ── Project switcher (top bar) ─────────────────────────────────────────────────────────── */
+.switcher {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 22px;
+  backdrop-filter: blur(14px) saturate(140%);
+  background: rgba(255, 255, 255, 0.62);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.switcher.dark {
+  background: rgba(18, 18, 22, 0.6);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+.switcher-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 650;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: #18181b;
+  padding-right: 4px;
+}
+.switcher.dark .switcher-brand {
+  color: #fafafa;
+}
+.switcher-brand svg {
+  width: 17px;
+  height: 17px;
+}
+.switcher-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.045);
+}
+.switcher.dark .switcher-tabs {
+  background: rgba(255, 255, 255, 0.07);
+}
+.switcher-tab {
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 7px 14px;
+  border-radius: 9px;
+  font: 550 13px/1 inherit;
+  color: rgba(0, 0, 0, 0.55);
+  letter-spacing: -0.005em;
+  transition:
+    color 200ms ease,
+    transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.switcher.dark .switcher-tab {
+  color: rgba(255, 255, 255, 0.55);
+}
+.switcher-tab:hover {
+  color: rgba(0, 0, 0, 0.85);
+}
+.switcher.dark .switcher-tab:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+.switcher-tab:active {
+  transform: scale(0.96);
+}
+.switcher-tab[data-active='true'] {
+  color: #fff;
+}
+.switcher.dark .switcher-tab[data-active='true'] {
+  color: #18181b;
+}
+.switcher-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: 9px;
+  background: #18181b;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.14);
+  z-index: -1;
+}
+.switcher.dark .switcher-pill {
+  background: #fafafa;
+}
+.switcher-hint {
+  margin-left: auto;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.switcher.dark .switcher-hint {
+  color: rgba(255, 255, 255, 0.42);
+}
+.switcher-hint kbd {
+  font: 600 11px/1 ui-monospace, 'SF Mono', monospace;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.07);
+  color: inherit;
+}
+.switcher.dark .switcher-hint kbd {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Stage (where the element lives) ────────────────────────────────────────────────────── */
+.stage {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 72px 28px 96px;
+}
+.stage-meta {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 84px;
+  text-align: center;
+  pointer-events: none;
+}
+.stage-meta h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+.stage-meta p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  opacity: 0.42;
+  max-width: 360px;
+}
+
+/* ── Element keyframes ──────────────────────────────────────────────────────────────────── */
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eq-bar,
+  .vinyl-spin {
+    animation: none !important;
+  }
+}

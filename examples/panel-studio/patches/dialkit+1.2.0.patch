@@ -1,5 +1,5 @@
 diff --git a/node_modules/dialkit/dist/index.cjs b/node_modules/dialkit/dist/index.cjs
-index d9f4837..385c7dc 100644
+index d9f4837..ce0432f 100644
 --- a/node_modules/dialkit/dist/index.cjs
 +++ b/node_modules/dialkit/dist/index.cjs
 @@ -337,7 +337,7 @@ var DialStoreClass = class {
@@ -23,7 +23,23 @@ index d9f4837..385c7dc 100644
          children: folderContent
        }
      );
-@@ -1853,6 +1854,15 @@ function normalizeOptions(options) {
+@@ -1034,6 +1035,7 @@ function Slider({
+   shortcut,
+   shortcutActive
+ }) {
++  if (typeof value !== "number") value = typeof min === "number" ? min : 0;
+   const wrapperRef = (0, import_react5.useRef)(null);
+   const trackRef = (0, import_react5.useRef)(null);
+   const inputRef = (0, import_react5.useRef)(null);
+@@ -1825,6 +1827,7 @@ function EaseTextInput({ ease, onChange }) {
+ // src/components/TextControl.tsx
+ var import_jsx_runtime10 = require("react/jsx-runtime");
+ function TextControl({ label, value, onChange, placeholder }) {
++  if (typeof value !== "string") value = "";
+   return /* @__PURE__ */ (0, import_jsx_runtime10.jsxs)("div", { className: "dialkit-text-control", children: [
+     /* @__PURE__ */ (0, import_jsx_runtime10.jsx)("label", { className: "dialkit-text-label", children: label }),
+     /* @__PURE__ */ (0, import_jsx_runtime10.jsx)(
+@@ -1853,6 +1856,15 @@ function normalizeOptions(options) {
      (opt) => typeof opt === "string" ? { value: opt, label: toTitleCase(opt) } : opt
    );
  }
@@ -39,7 +55,15 @@ index d9f4837..385c7dc 100644
  function SelectControl({ label, value, options, onChange }) {
    const [isOpen, setIsOpen] = (0, import_react10.useState)(false);
    const triggerRef = (0, import_react10.useRef)(null);
-@@ -2266,7 +2276,7 @@ Apply these values as the new defaults in the useDialKit call.`;
+@@ -1966,6 +1978,7 @@ var import_react12 = require("react");
+ var import_jsx_runtime12 = require("react/jsx-runtime");
+ var HEX_COLOR_REGEX = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+ function ColorControl({ label, value, onChange }) {
++  if (typeof value !== "string") value = "#000000";
+   const [isEditing, setIsEditing] = (0, import_react12.useState)(false);
+   const [editValue, setEditValue] = (0, import_react12.useState)(value);
+   const colorInputRef = (0, import_react12.useRef)(null);
+@@ -2266,7 +2279,7 @@ Apply these values as the new defaults in the useDialKit call.`;
          );
        case "select":
          return /* @__PURE__ */ (0, import_jsx_runtime14.jsx)(
@@ -49,7 +73,7 @@ index d9f4837..385c7dc 100644
              label: control.label,
              value,
 diff --git a/node_modules/dialkit/dist/index.js b/node_modules/dialkit/dist/index.js
-index f8d8baf..a58300a 100644
+index f8d8baf..47a7e4d 100644
 --- a/node_modules/dialkit/dist/index.js
 +++ b/node_modules/dialkit/dist/index.js
 @@ -297,7 +297,7 @@ var DialStoreClass = class {
@@ -73,7 +97,23 @@ index f8d8baf..a58300a 100644
          children: folderContent
        }
      );
-@@ -1813,6 +1814,15 @@ function normalizeOptions(options) {
+@@ -994,6 +995,7 @@ function Slider({
+   shortcut,
+   shortcutActive
+ }) {
++  if (typeof value !== "number") value = typeof min === "number" ? min : 0;
+   const wrapperRef = useRef4(null);
+   const trackRef = useRef4(null);
+   const inputRef = useRef4(null);
+@@ -1785,6 +1787,7 @@ function EaseTextInput({ ease, onChange }) {
+ // src/components/TextControl.tsx
+ import { jsx as jsx10, jsxs as jsxs9 } from "react/jsx-runtime";
+ function TextControl({ label, value, onChange, placeholder }) {
++  if (typeof value !== "string") value = "";
+   return /* @__PURE__ */ jsxs9("div", { className: "dialkit-text-control", children: [
+     /* @__PURE__ */ jsx10("label", { className: "dialkit-text-label", children: label }),
+     /* @__PURE__ */ jsx10(
+@@ -1813,6 +1816,15 @@ function normalizeOptions(options) {
      (opt) => typeof opt === "string" ? { value: opt, label: toTitleCase(opt) } : opt
    );
  }
@@ -89,7 +129,15 @@ index f8d8baf..a58300a 100644
  function SelectControl({ label, value, options, onChange }) {
    const [isOpen, setIsOpen] = useState6(false);
    const triggerRef = useRef8(null);
-@@ -2226,7 +2236,7 @@ Apply these values as the new defaults in the useDialKit call.`;
+@@ -1926,6 +1938,7 @@ import { useState as useState7, useRef as useRef9, useEffect as useEffect6 } fro
+ import { jsx as jsx12, jsxs as jsxs11 } from "react/jsx-runtime";
+ var HEX_COLOR_REGEX = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+ function ColorControl({ label, value, onChange }) {
++  if (typeof value !== "string") value = "#000000";
+   const [isEditing, setIsEditing] = useState7(false);
+   const [editValue, setEditValue] = useState7(value);
+   const colorInputRef = useRef9(null);
+@@ -2226,7 +2239,7 @@ Apply these values as the new defaults in the useDialKit call.`;
          );
        case "select":
          return /* @__PURE__ */ jsx14(

@@ -1,0 +1,25 @@
+{
+  "name": "variantkit-showcase",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "sync": "cp ../../variantkit/react.tsx ../../variantkit/configs.ts ../../variantkit/buildDecision.ts ../../variantkit/dialkit-clean.css ../../variantkit/dialkit-dark.css ../../variantkit/motion.css src/variantkit/"
+  },
+  "dependencies": {
+    "dialkit": "^1.2.0",
+    "motion": "^12.40.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.21"
+  }
+}
