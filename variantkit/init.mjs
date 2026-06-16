@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 // variantkit — set up (or check, or fully remove) VariantKit in a project.
 //
-//   npx variantkit [init] [targetDir] [flags]   set everything up (default command)
-//   npx variantkit doctor [targetDir]           check the install, print fix-its
-//   npx variantkit remove [targetDir]           uninstall with zero residue
+//   npx variantkit@latest [init] [targetDir] [flags]   set everything up (default command)
+//   npx variantkit@latest doctor [targetDir]           check the install, print fix-its
+//   npx variantkit@latest remove [targetDir]           uninstall with zero residue
+//
+//   Always pin @latest: a bare `npx variantkit` can run a stale npx cache and ship an old build.
 //
 // init flags: --dry-run --skip-install --no-mount --no-skill --skill
 // remove flags: --keep-deps --skill (also removes the global skill)
@@ -374,7 +376,7 @@ function init() {
   head('done. next:')
   log('run your dev server, then ask your AI for "three takes on <component>".')
   log('switch with the bottom bar (keys 1..9), Compare for side-by-side, Finalize when happy —')
-  log('then tell your agent "apply decision". Check the install anytime: npx variantkit doctor')
+  log('then tell your agent "apply decision". Check the install anytime: npx variantkit@latest doctor')
 }
 
 // ---------------------------------------------------------------------------
@@ -392,15 +394,15 @@ function doctor() {
 
   check(!!d.deps.dialkit, 'dialkit dependency', 'npm i dialkit')
   check(!!d.deps.motion, 'motion dependency', 'npm i motion')
-  check(existsSync(join(d.runtimeDir, 'buildDecision.ts')), 'runtime: buildDecision.ts', 'npx variantkit init')
-  check(existsSync(join(d.runtimeDir, 'schemas', 'archetypes.ts')), 'runtime: schemas/', 'npx variantkit init')
-  check(existsSync(join(d.runtimeDir, 'react', 'VariantBar.tsx')), 'runtime: react/', 'npx variantkit init')
-  check(existsSync(join(d.runtimeDir, 'configs.ts')), 'runtime: configs.ts', 'npx variantkit init')
-  check(existsSync(join(d.runtimeDir, 'react.tsx')), 'runtime: react.tsx (Studio)', 'npx variantkit init')
-  check(existsSync(join(d.runtimeDir, 'dialkit-clean.css')), 'runtime: panel css', 'npx variantkit init')
+  check(existsSync(join(d.runtimeDir, 'buildDecision.ts')), 'runtime: buildDecision.ts', 'npx variantkit@latest init')
+  check(existsSync(join(d.runtimeDir, 'schemas', 'archetypes.ts')), 'runtime: schemas/', 'npx variantkit@latest init')
+  check(existsSync(join(d.runtimeDir, 'react', 'VariantBar.tsx')), 'runtime: react/', 'npx variantkit@latest init')
+  check(existsSync(join(d.runtimeDir, 'configs.ts')), 'runtime: configs.ts', 'npx variantkit@latest init')
+  check(existsSync(join(d.runtimeDir, 'react.tsx')), 'runtime: react.tsx (Studio)', 'npx variantkit@latest init')
+  check(existsSync(join(d.runtimeDir, 'dialkit-clean.css')), 'runtime: panel css', 'npx variantkit@latest init')
   const agentOk = [join(target, 'AGENT.md'), join(target, 'AGENT.variantkit.md')]
     .some((p) => existsSync(p) && readFileSync(p, 'utf8').includes('VariantKit — Agent Contract'))
-  check(agentOk, 'AGENT.md contract', 'npx variantkit init')
+  check(agentOk, 'AGENT.md contract', 'npx variantkit@latest init')
 
   const mountFile = (d.framework === 'next' ? d.layout : d.entry)
   const mounted = mountFile && readFileSync(mountFile, 'utf8').includes('DialRoot')
@@ -414,7 +416,7 @@ function doctor() {
   } else if (d.framework === 'next') {
     const route = (d.appDir && existsSync(join(d.appDir, 'api', '__variantkit', 'decision', 'route.ts')))
       || (d.pagesDir && existsSync(join(d.pagesDir, 'api', '__variantkit', 'decision.ts')))
-    check(!!route, 'Next decision transport route', 'npx variantkit init')
+    check(!!route, 'Next decision transport route', 'npx variantkit@latest init')
   } else {
     log(`~ framework=${d.framework}: transport check skipped (clipboard fallback applies)`)
   }
@@ -423,11 +425,11 @@ function doctor() {
     const p = join(target, rel)
     return existsSync(p) && readFileSync(p, 'utf8').includes('<!-- variantkit -->')
   })
-  check(pointer, 'agent rules pointer', 'npx variantkit init')
+  check(pointer, 'agent rules pointer', 'npx variantkit@latest init')
   const gi = join(target, '.gitignore')
   check(existsSync(gi) && readFileSync(gi, 'utf8').includes('.variantkit/'), '.variantkit/ gitignored', 'add .variantkit/ to .gitignore')
   const skill = existsSync(join(homedir(), '.claude', 'skills', 'variantkit', 'SKILL.md'))
-  check(skill, 'global Claude Code skill', 'npx variantkit init --skill')
+  check(skill, 'global Claude Code skill', 'npx variantkit@latest init --skill')
 
   head(fails === 0 ? 'all good.' : `${fails} issue${fails > 1 ? 's' : ''} found.`)
   process.exit(fails === 0 ? 0 : 1)
@@ -573,7 +575,7 @@ function remove() {
       did(`delete global skill ${skillDest}`)
     }
   } else {
-    log('global skill kept (remove with: npx variantkit remove --skill)')
+    log('global skill kept (remove with: npx variantkit@latest remove --skill)')
   }
 
   head('removed. `git status` should show only deletions and reverted lines.')

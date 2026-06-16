@@ -1,39 +1,52 @@
-// VariantKit landing — a balanced split. Left: the hero, rendered as one of three DRASTICALLY
-// different takes. Right: the REAL DialKit panel (wider, it's a demo). Switching a variant snaps
-// a full preset AND restructures the hero's treatment (type, decoration, CTA, accent). Controls
-// then fine-tune. Atmosphere (glow + grain + vignette) gives the dark depth.
-import { useState, useEffect, useRef, type CSSProperties } from 'react'
+// VariantKit landing — the hero IS the product. A compact pitch on the left, a live STAGE in the
+// middle showing one CTA rendered as three variant cards (the "illustration"), and the REAL
+// DialKit panel on the right tuning the component — accent, radius, padding, weight, label. Click
+// a card (or a pill) to select the variant; everything restyles live. Fills the whole space.
+import { useState, type CSSProperties } from 'react'
 import { useDialKit, DialStore } from 'dialkit'
 import type { ParamValue } from './core/buildDecision'
 
-type Take = 'Monolith' | 'Editorial' | 'Kinetic'
+type Take = 'Solid' | 'Outline' | 'Soft'
+const TAKES: Take[] = ['Solid', 'Outline', 'Soft']
+const WEIGHT: Record<string, number> = { Regular: 400, Medium: 500, Semibold: 600, Bold: 700 }
 
-// Each take: a distinct typographic personality + a preset the variant snaps the controls to.
-const TAKES: Record<Take, { family: string; transform: CSSProperties['textTransform']; italic?: boolean;
-  size: number; weight: string; tracking: number; leading: number }> = {
-  Monolith:  { family: '"Inter var", Inter, sans-serif',    transform: 'none',                   size: 64, weight: 'Black',   tracking: -2.5, leading: 1.0 },
-  Editorial: { family: 'Georgia, "Times New Roman", serif', transform: 'none', italic: true,     size: 50, weight: 'Regular', tracking: -0.5, leading: 1.14 },
-  Kinetic:   { family: '"Inter var", Inter, sans-serif',    transform: 'uppercase',              size: 78, weight: 'Bold',    tracking: -3.5, leading: 0.9 },
+// Render the CTA in a given take, using the shared (panel-controlled) props.
+function Cta({ take, label, accent, radius, padX, weight, arrow }: {
+  take: Take; label: string; accent: string; radius: number; padX: number; weight: number; arrow: boolean
+}) {
+  const base: CSSProperties = {
+    display: 'inline-flex', alignItems: 'center', gap: 9, borderRadius: radius,
+    padding: `13px ${padX}px`, fontSize: 15, fontWeight: weight, lineHeight: 1,
+    fontFamily: 'inherit', letterSpacing: '-0.01em', cursor: 'pointer', whiteSpace: 'nowrap',
+    transition: 'all .25s cubic-bezier(.2,.9,.2,1)',
+  }
+  const skin: CSSProperties =
+    take === 'Solid' ? { background: accent, color: '#07130d', border: '1px solid transparent' }
+    : take === 'Outline' ? { background: 'transparent', color: accent, border: `1.5px solid ${accent}` }
+    : { background: `color-mix(in srgb, ${accent} 16%, transparent)`, color: accent, border: '1px solid transparent' }
+  return (
+    <span style={{ ...base, ...skin }}>
+      {label}
+      {arrow && <span style={{ fontSize: 16, opacity: 0.9 }}>→</span>}
+    </span>
+  )
 }
-const WEIGHT: Record<string, number> = { Regular: 400, Medium: 500, Semibold: 600, Bold: 700, Black: 800 }
 
 export default function LandingHero() {
   const [finalized, setFinalized] = useState<Take | null>(null)
 
   const v = useDialKit(
-    'Hero',
+    'CTA',
     {
-      variant: { type: 'select', options: ['Monolith', 'Editorial', 'Kinetic'], default: 'Monolith', segmented: true },
-      headline: 'Ship three. Keep one.',
-      eyebrow: 'The control panel for AI-built UI',
-      size: [64, 38, 104, 1],
-      weight: { type: 'select', options: ['Regular', 'Medium', 'Semibold', 'Bold', 'Black'], default: 'Black' },
-      tracking: [-2.5, -5, 1, 0.5],
+      variant: { type: 'select', options: ['Solid', 'Outline', 'Soft'], default: 'Solid', segmented: true },
+      label: 'Get started',
       accent: '#46d39a',
-      glow: [22, 0, 80, 1],
-      background: { type: 'select', options: ['Plain', 'Glow', 'Grid'], default: 'Glow' },
-      rule: true,
-      finalize: { type: 'action', label: 'Finalize Hero' },
+      radius: [12, 0, 28, 1],
+      paddingX: [24, 12, 48, 1],
+      weight: { type: 'select', options: ['Regular', 'Medium', 'Semibold', 'Bold'], default: 'Semibold' },
+      arrow: true,
+      surface: { type: 'select', options: ['Plain', 'Grid', 'Dots'], default: 'Grid' },
+      finalize: { type: 'action', label: 'Finalize CTA' },
     },
     {
       onChange: () => setFinalized(null),
@@ -41,46 +54,21 @@ export default function LandingHero() {
     },
   ) as Record<string, ParamValue>
 
-  // Switching a variant snaps its whole preset (size/weight/tracking) — a dramatic starting point.
-  const prev = useRef(String(v.variant))
-  useEffect(() => {
-    const cur = String(v.variant)
-    if (cur === prev.current) return
-    prev.current = cur
-    const t = TAKES[cur as Take]
-    const panel = (DialStore.getPanels() as Array<{ id: string; name: string }>).find((x) => x.name === 'Hero')
-    if (!panel || !t) return
-    DialStore.updateValue(panel.id, 'size', t.size)
-    DialStore.updateValue(panel.id, 'weight', t.weight)
-    DialStore.updateValue(panel.id, 'tracking', t.tracking)
-  }, [v.variant])
-
-  const variant = (String(v.variant) as Take) ?? 'Monolith'
-  const take = TAKES[variant]
+  const active = (String(v.variant) as Take) ?? 'Solid'
   const accent = String(v.accent)
-  const size = Number(v.size)
-  const weight = WEIGHT[String(v.weight)] ?? 700
-  const tracking = Number(v.tracking)
-  const glow = Number(v.glow)
+  const label = String(v.label) || 'Button'
+  const radius = Number(v.radius)
+  const padX = Number(v.paddingX)
+  const weight = WEIGHT[String(v.weight)] ?? 600
+  const arrow = Boolean(v.arrow)
 
-  const headlineStyle: CSSProperties = {
-    fontFamily: take.family,
-    fontWeight: weight,
-    fontStyle: take.italic ? 'italic' : 'normal',
-    textTransform: take.transform,
-    lineHeight: take.leading,
-    letterSpacing: `${(tracking / 100).toFixed(3)}em`,
-    fontSize: `clamp(36px, ${(size / 16).toFixed(2)}vw + 16px, ${size}px)`,
-    margin: 0,
-    color: 'var(--ink)',
-    textShadow: glow > 0
-      ? `0 0 ${glow}px color-mix(in srgb, ${accent} 55%, transparent), 0 2px 40px rgba(0,0,0,.5)`
-      : '0 2px 40px rgba(0,0,0,.5)',
-    transition: 'font-size .35s cubic-bezier(.2,.9,.2,1), line-height .35s, letter-spacing .35s, font-weight .2s, text-shadow .3s',
+  const select = (t: Take) => {
+    const p = (DialStore.getPanels() as Array<{ id: string; name: string }>).find((x) => x.name === 'CTA')
+    if (p) DialStore.updateValue(p.id, 'variant', t)
   }
 
   return (
-    <main className="vk-land" data-bg={String(v.background)} style={{ ['--accent' as string]: accent }}>
+    <main className="vk-land" data-bg={String(v.surface)} style={{ ['--accent' as string]: accent }}>
       <div className="vk-grain" />
 
       <header className="vk-top">
@@ -93,22 +81,37 @@ export default function LandingHero() {
         </nav>
       </header>
 
-      <section className="vk-hero">
-        <div className="vk-left" data-take={variant}>
-          {Boolean(v.eyebrow) && (
-            <span className="vk-eyebrow">
-              {variant === 'Kinetic' && <i className="vk-dot" />}
-              {String(v.eyebrow)}
-            </span>
-          )}
-          <h1 style={headlineStyle}>{String(v.headline) || ' '}</h1>
-          {Boolean(v.rule) && variant !== 'Editorial' && <span className="vk-rule" />}
-          <p className="vk-sub">When your AI agent builds UI, VariantKit has it generate a few versions instead of one. You compare them live, tune anything, and keep the one you want. The rest are deleted for you.</p>
-          <div className="vk-row">
-            <span className={`vk-cmd${variant === 'Kinetic' ? ' solid' : ''}`}>npx variantkit</span>
-            {finalized && <span className="vk-done">✓ Finalized {finalized}</span>}
-          </div>
+      <section className="vk-body">
+        <div className="vk-pitch">
+          <span className="vk-eyebrow"><i className="vk-dot" />Live — this is the product</span>
+          <h1 className="vk-h1">Your agent ships three. You keep one.</h1>
+          <p className="vk-sub">VariantKit generates a few real takes of every component, tunes them in this panel, and prunes everything you didn’t pick.</p>
+          <span className="vk-cmd">npx variantkit@latest</span>
         </div>
+
+        <div className="vk-stage">
+          {TAKES.map((t, i) => (
+            <button
+              key={t}
+              className="vk-card"
+              data-on={String(t === active)}
+              onClick={() => select(t)}
+            >
+              <span className="vk-card-top">
+                <span className="vk-card-n">{String(i + 1).padStart(2, '0')}</span>
+                <span className="vk-card-name">{t}</span>
+                {t === active && (
+                  <span className="vk-card-flag">{finalized === t ? 'finalized' : 'selected'}</span>
+                )}
+              </span>
+              <span className="vk-card-stage">
+                <Cta take={t} label={label} accent={accent} radius={radius} padX={padX} weight={weight} arrow={arrow} />
+              </span>
+            </button>
+          ))}
+          <span className="vk-stage-foot">Click a take, or use the panel. <b>Finalize</b> keeps one and prunes the rest.</span>
+        </div>
+
         <div className="vk-right" aria-hidden="true" />
       </section>
 
@@ -117,13 +120,12 @@ export default function LandingHero() {
   )
 }
 
-const MAXW = 1280 // centered container
-const PANEL = 500 // panel / right column width (wider — it's the demo)
+const PANEL = 432 // panel width, docked right
 
 const css = `
 :root{
-  --bg:#08090a; --ink:#f7f8f8; --dim:#8a8f98; --faint:#5c6066;
-  --line:rgba(255,255,255,.09); --chip:rgba(255,255,255,.04); --pad:clamp(28px,4vw,44px);
+  --bg:#0a0b0c; --ink:#f4f5f6; --dim:#8c9197; --faint:#595e64;
+  --line:rgba(255,255,255,.09); --chip:rgba(255,255,255,.04); --pad:clamp(34px,5vw,72px);
   --accent:#46d39a;
   font-family:"Inter var",Inter,-apple-system,sans-serif;
 }
@@ -134,24 +136,21 @@ body{margin:0;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antia
 a{color:inherit;text-decoration:none}
 
 .vk-land{position:relative;min-height:100dvh;overflow:hidden;background:var(--bg)}
-.vk-land[data-bg='Plain']{background:radial-gradient(38% 50% at 80% 50%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 62%), var(--bg)}
-.vk-land[data-bg='Glow']{background:radial-gradient(44% 58% at 79% 50%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 60%),
-  radial-gradient(46% 46% at 16% 16%, rgba(255,255,255,.022), transparent 60%), var(--bg)}
+.vk-land[data-bg='Plain']{background:linear-gradient(180deg,#0d0e10,var(--bg) 60%)}
 .vk-land[data-bg='Grid']{background-color:var(--bg);
-  background-image:radial-gradient(40% 56% at 79% 50%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 60%),
-    linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
-  background-size:auto, 42px 42px, 42px 42px}
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:46px 46px}
+.vk-land[data-bg='Dots']{background-color:var(--bg);
+  background-image:radial-gradient(rgba(255,255,255,.06) 1.1px,transparent 1.1px);background-size:26px 26px}
 .vk-land::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(84% 80% at 48% 48%, transparent 52%, rgba(0,0,0,.5) 100%)}
-.vk-grain{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.038;
+  background:radial-gradient(92% 82% at 42% 38%, transparent 56%, rgba(0,0,0,.48) 100%)}
+.vk-grain{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.04;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 
-.vk-top{position:absolute;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:${MAXW}px;z-index:5;
-  padding:clamp(20px,2.4vw,30px) var(--pad);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.vk-top{position:absolute;top:0;left:0;right:0;z-index:5;
+  padding:clamp(22px,2.4vw,32px) var(--pad);display:flex;align-items:center;justify-content:space-between;gap:16px}
 .vk-brand{display:flex;align-items:center;gap:10px;font-weight:560;font-size:15px;letter-spacing:-.01em}
 .vk-mark{display:inline-flex;gap:2.5px}
-.vk-mark i{width:5px;height:15px;border-radius:2px;background:var(--ink);opacity:.85;display:block;transition:.4s cubic-bezier(.2,.9,.2,1)}
+.vk-mark i{width:5px;height:15px;border-radius:2px;background:var(--ink);opacity:.85;display:block}
 .vk-mark i:nth-child(2){opacity:.55;height:18px}.vk-mark i:nth-child(3){opacity:.3}
 .vk-nav{display:flex;align-items:center;gap:4px}
 .vk-nav a{font-size:14px;color:var(--dim);font-weight:450;padding:8px 12px;border-radius:8px;transition:.18s;display:inline-flex;align-items:center}
@@ -159,54 +158,59 @@ a{color:inherit;text-decoration:none}
 .vk-nav a.ic{padding:8px;color:var(--dim)}.vk-nav a.ic:hover{color:var(--ink)}
 .vk-nav svg{display:block}
 
-.vk-hero{position:relative;z-index:2;min-height:100dvh;max-width:${MAXW}px;margin:0 auto;padding:0 var(--pad);
-  display:grid;grid-template-columns:minmax(0,1fr) ${PANEL}px;gap:clamp(48px,5vw,84px);align-items:center}
-.vk-left{display:flex;flex-direction:column;gap:26px;min-width:0}
-.vk-eyebrow{font-size:14.5px;color:var(--dim);font-weight:500;letter-spacing:-.005em;display:inline-flex;align-items:center}
-.vk-rule{display:block;height:3px;width:76px;border-radius:2px;background:var(--accent);transition:background .25s;margin-top:-10px}
-.vk-sub{font-size:16.5px;line-height:1.62;color:var(--dim);font-weight:450;margin:0;max-width:46ch;text-shadow:0 1px 20px rgba(0,0,0,.5)}
-.vk-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:8px}
-.vk-cmd{font-size:14px;font-weight:500;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:11px 15px;background:rgba(10,10,12,.5);transition:.2s}
+/* body: pitch | live stage | (reserved panel) */
+.vk-body{position:relative;z-index:2;min-height:100dvh;display:grid;
+  grid-template-columns:minmax(240px,320px) minmax(0,1fr) ${PANEL}px;
+  gap:clamp(36px,4vw,72px);align-items:center;padding:120px var(--pad) 64px}
+.vk-right{}
+
+.vk-pitch{display:flex;flex-direction:column;gap:22px}
+.vk-eyebrow{display:inline-flex;align-items:center;font-size:13px;color:var(--dim);font-weight:500;letter-spacing:.02em;text-transform:uppercase}
+.vk-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);margin-right:11px;flex:0 0 auto}
+.vk-h1{font-size:clamp(32px,3vw,44px);line-height:1.08;letter-spacing:-.028em;font-weight:600;margin:0;color:var(--ink)}
+.vk-sub{font-size:15.5px;line-height:1.6;color:var(--dim);font-weight:450;margin:0}
+.vk-cmd{align-self:flex-start;font-size:14px;font-weight:500;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:11px 15px;background:rgba(255,255,255,.03)}
 .vk-cmd::before{content:"$";color:var(--faint);margin-right:9px}
-.vk-cmd.solid{background:var(--accent);border-color:transparent;color:#08130d;font-weight:650}
-.vk-cmd.solid::before{color:rgba(8,19,13,.55)}
-.vk-done{font-size:13.5px;color:var(--accent);font-weight:500}
-.vk-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:11px;flex:0 0 auto;
-  box-shadow:0 0 12px var(--accent);animation:vkpulse 2.4s infinite}
-@keyframes vkpulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
 
-/* ── DRASTIC per-take treatments ──────────────────────────────────────────── */
-/* Editorial — refined, centered, serif; eyebrow becomes a tracked kicker with a leading rule */
-.vk-left[data-take='Editorial']{align-items:center;text-align:center}
-.vk-left[data-take='Editorial'] .vk-eyebrow{text-transform:uppercase;letter-spacing:.24em;font-size:12px;color:var(--dim);gap:14px}
-.vk-left[data-take='Editorial'] .vk-eyebrow::before,
-.vk-left[data-take='Editorial'] .vk-eyebrow::after{content:"";width:30px;height:1px;background:rgba(255,255,255,.25)}
-.vk-left[data-take='Editorial'] .vk-sub{max-width:50ch;font-size:17px}
-.vk-left[data-take='Editorial'] .vk-row{justify-content:center}
-/* Kinetic — loud poster; accent-filled CTA, pulsing dot eyebrow, tighter rule */
-.vk-left[data-take='Kinetic'] .vk-eyebrow{text-transform:uppercase;letter-spacing:.14em;font-size:12.5px;font-weight:600;color:var(--ink)}
-.vk-left[data-take='Kinetic'] .vk-rule{width:120px;height:5px}
+/* live stage — three variant preview cards, the illustration */
+.vk-stage{display:flex;flex-direction:column;gap:16px;max-width:520px;width:100%;justify-self:center}
+.vk-card{position:relative;display:flex;flex-direction:column;gap:0;text-align:left;cursor:pointer;
+  border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.018);overflow:hidden;
+  transition:.22s cubic-bezier(.2,.9,.2,1)}
+.vk-card:hover{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.035);transform:translateY(-2px)}
+.vk-card[data-on='true']{border-color:color-mix(in srgb,var(--accent) 60%,transparent);
+  background:color-mix(in srgb,var(--accent) 7%,transparent);
+  box-shadow:0 18px 50px -22px color-mix(in srgb,var(--accent) 45%,transparent)}
+.vk-card-top{display:flex;align-items:center;gap:11px;padding:11px 15px;border-bottom:1px solid var(--line);font-size:12px}
+.vk-card-n{font-variant-numeric:tabular-nums;color:var(--faint);font-weight:600}
+.vk-card-name{color:var(--dim);font-weight:500}
+.vk-card[data-on='true'] .vk-card-name{color:var(--ink)}
+.vk-card-flag{margin-left:auto;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);
+  border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);border-radius:999px;padding:3px 9px}
+.vk-card-stage{display:flex;align-items:center;justify-content:center;padding:30px 18px;min-height:104px}
+.vk-stage-foot{font-size:12.5px;color:var(--faint);margin-top:2px}
+.vk-stage-foot b{color:var(--dim);font-weight:500}
 
+/* docked panel, right */
 .dialkit-panel{position:fixed!important;top:50%!important;left:auto!important;bottom:auto!important;
-  transform:translateY(-50%)!important;
-  right:calc(max(0px, (100vw - ${MAXW}px) / 2) + var(--pad))!important;
-  width:${PANEL}px!important;height:auto!important;max-height:min(88vh,820px)!important;z-index:4!important}
-.dialkit-panel-inner{width:100%!important;max-height:min(88vh,820px)!important;
-  border-radius:18px!important;border:1px solid var(--line)!important;
-  background:#0d0e10!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
-  box-shadow:0 50px 130px -42px rgba(70,211,154,.16), 0 36px 90px -30px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.03)!important;
+  transform:translateY(-50%)!important;right:clamp(20px,2vw,32px)!important;
+  width:${PANEL}px!important;height:auto!important;max-height:min(90vh,860px)!important;z-index:4!important}
+.dialkit-panel-inner{width:100%!important;max-height:min(90vh,860px)!important;
+  border-radius:18px!important;border:1px solid var(--line)!important;background:#101113!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  box-shadow:0 40px 110px -36px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.03)!important;
   overflow-y:auto!important;padding:18px 20px 22px!important}
 .dialkit-panel-inner::-webkit-scrollbar{width:9px}
 .dialkit-panel-inner::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:5px}
 .dialkit-panel-icon{display:none!important}
 
-@media (max-width:1040px){
-  .vk-hero{grid-template-columns:1fr;min-height:auto;padding-top:104px;padding-bottom:48dvh}
-  .vk-right{display:none}.vk-left{max-width:none}
+@media (max-width:1100px){
+  .vk-body{grid-template-columns:1fr;min-height:auto;padding:104px var(--pad) 48dvh;gap:30px}
+  .vk-right{display:none}.vk-stage{max-width:none;justify-self:stretch}
   .dialkit-panel{top:auto!important;bottom:14px!important;right:14px!important;left:14px!important;
-    transform:none!important;width:auto!important;max-height:44dvh!important}
-  .dialkit-panel-inner{max-height:44dvh!important}
+    transform:none!important;width:auto!important;max-height:42dvh!important}
+  .dialkit-panel-inner{max-height:42dvh!important}
   .vk-nav a:not(.ic){display:none}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}.vk-dot{animation:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 `

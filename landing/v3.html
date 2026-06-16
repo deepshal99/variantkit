@@ -99,7 +99,7 @@
     <div class="foot">
       <p class="sub">When your AI agent builds UI, VariantKit has it generate a few versions instead of one. You compare them live, tune anything, and keep the one you want. The rest are deleted for you.</p>
       <div class="row">
-        <span class="cmd clickable"><span class="pr">$</span> npx variantkit<button id="copy">Copy</button></span>
+        <span class="cmd clickable"><span class="pr">$</span> npx variantkit@latest<button id="copy">Copy</button></span>
         <a class="ghost" href="./docs.html">Read the docs</a>
       </div>
     </div>
@@ -200,7 +200,7 @@ window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
 window.addEventListener('touchmove',e=>{mouse.x=e.touches[0].clientX;mouse.y=e.touches[0].clientY;},{passive:true});
 window.addEventListener('resize',resize);
 window.addEventListener('click',e=>{ if(e.target.closest('a,button,.cmd')) return; current=(current+1)%N_SHAPES; });
-function doCopy(){navigator.clipboard?.writeText('npx variantkit');const b=document.getElementById('copy');b.textContent='Copied';b.classList.add('done');setTimeout(()=>{b.textContent='Copy';b.classList.remove('done');},1500);}
+function doCopy(){navigator.clipboard?.writeText('npx variantkit@latest');const b=document.getElementById('copy');b.textContent='Copied';b.classList.add('done');setTimeout(()=>{b.textContent='Copy';b.classList.remove('done');},1500);}
 document.getElementById('copy').addEventListener('click',e=>{e.stopPropagation();doCopy();});
 const WORDS=['version.','shape.','take.','look.','answer.'];
 const span=document.getElementById('swap').querySelector('span');let wi=0;

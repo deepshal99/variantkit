@@ -4,20 +4,20 @@
 
 ```sh
 cd your-app
-npx variantkit
+npx variantkit@latest
 npm run dev
 ```
 
 The installer wires everything: deps, runtime at `src/variantkit/`, the `variantkit()`
 plugin in `vite.config`, `<DialRoot/>` + `<VariantBar/>` in `src/main.tsx`, the agent
 contract, and `.variantkit/` in `.gitignore`. Verify with
-`npx variantkit doctor`.
+`npx variantkit@latest doctor`.
 
 ## Next.js (App or Pages Router)
 
 ```sh
 cd your-app
-npx variantkit
+npx variantkit@latest
 npm run dev
 ```
 
@@ -62,9 +62,9 @@ Full contract (scaffold convention, prune algorithm, panel rules, deslop, taste)
 
 ## Troubleshooting
 
-- `npx variantkit doctor` — 15 checks with fix-its (deps, mount, styles, transport, pointer, skill).
+- `npx variantkit@latest doctor` — 15 checks with fix-its (deps, mount, styles, transport, pointer, skill).
 - Finalize says "copied to clipboard" — the dev transport isn't reachable; paste the JSON
   to your agent (same result), or re-run init / check the vite plugin / Next route.
 - Bar not visible — it appears only when a variant set is registered (a panel with a
   `variant` select + `finalize` action) and only in dev builds.
-- Full uninstall: `npx variantkit remove` (leaves `git status` clean).
+- Full uninstall: `npx variantkit@latest remove` (leaves `git status` clean).

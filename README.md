@@ -20,8 +20,10 @@ Stop describing tweaks in chat. Tweak the thing, then hand your agent the decisi
 From inside your project (Vite or Next.js, React 18+):
 
 ```sh
-npx variantkit
+npx variantkit@latest
 ```
+
+The `@latest` matters: a bare `npx variantkit` can run a stale cached build and ship you an old panel (missing shuffle/reset/copy). Always pin `@latest`.
 
 (or straight from GitHub: `npx github:deepshal99/variantkit`)
 
@@ -37,8 +39,8 @@ One command does everything:
 Check or undo anytime:
 
 ```sh
-npx variantkit doctor    # 15 checks with fix-its
-npx variantkit remove    # zero-residue uninstall (git-clean verified)
+npx variantkit@latest doctor    # 15 checks with fix-its
+npx variantkit@latest remove    # zero-residue uninstall (git-clean verified)
 ```
 
 Flags: `--dry-run` `--skip-install` `--no-mount` `--no-skill` (init) · `--keep-deps` (remove)

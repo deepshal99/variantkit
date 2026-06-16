@@ -1,0 +1,48 @@
+name: publish
+
+# Publishes variantkit to npm when you push a version tag (v0.3.1, v0.4.0, …).
+# Flow: bump version -> commit -> tag -> push the tag. CI verifies the tag matches
+# package.json, then runs `npm publish`. Pushing plain commits never publishes.
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+
+      # The tag (v0.3.1) must match the version in package.json (0.3.1) — fail loudly otherwise.
+      - name: Verify tag matches package.json version
+        run: |
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::tag $GITHUB_REF_NAME != package.json version $PKG_VERSION"
+            exit 1
+          fi
+          echo "publishing variantkit@$PKG_VERSION"
+
+      # Guard against re-publishing a version that already exists on npm.
+      - name: Guard against duplicate publish
+        run: |
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if npm view "variantkit@$PKG_VERSION" version >/dev/null 2>&1; then
+            echo "::error::variantkit@$PKG_VERSION is already on npm — bump the version first"
+            exit 1
+          fi
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

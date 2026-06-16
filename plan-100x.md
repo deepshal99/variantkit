@@ -194,9 +194,9 @@ tabular numbers, enter/exit transitions via `motion` (already a dep).
 - `--skill` becomes default-on with prompt (keep flag to force).
 
 ### 4.2 New subcommands (same bin)
-- `npx variantkit doctor` — checks: deps installed, DialRoot mounted, styles imported,
+- `npx variantkit@latest doctor` — checks: deps installed, DialRoot mounted, styles imported,
   transport reachable, rules pointer present, skill installed. Prints fix-its.
-- `npx variantkit remove` — full uninstall: deps, runtime dir, AGENT.md, rules pointer
+- `npx variantkit@latest remove` — full uninstall: deps, runtime dir, AGENT.md, rules pointer
   block (between `<!-- variantkit -->` markers), mount lines, `.variantkit/`. Zero-residue,
   matching the prune ethos.
 
