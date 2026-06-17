@@ -1,6 +1,6 @@
 {
   "name": "variantkit",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "The configuration panel for AI-built UI: your agent generates variants with a full contextual control panel, you tweak and finalize, the losers get pruned from the codebase. Built on DialKit.",
   "type": "module",
   "bin": {
