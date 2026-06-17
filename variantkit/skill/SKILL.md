@@ -107,6 +107,49 @@ is shown. `focusOnHover` expands the hovered element's folder — panel-side onl
 drawn over the rendered element. Mount `<DialRoot/>` once in the app root. Still author the
 variant components file-per-variant (recipe below) so the prune stays a clean delete.
 
+**API (inline — do NOT open `react.tsx`/`schemas/*` to look these up; everything you need is here):**
+
+```ts
+// from './variantkit/react'
+Studio({ elements: ElementDef[], name?='VariantKit', focusOnHover?, onFinalize? })
+interface ElementDef {
+  name: string                 // folder label, also the decision target
+  keys: string[]               // variant keys; one key ⇒ no dropdown
+  controls?: PanelConfig | ((variant) => PanelConfig)  // fn form swaps controls per variant
+  render: (variant: string, values) => ReactNode
+  config?: PanelConfig         // optional: replace the whole assembled panel
+}
+useDialkitTheme(initial?: 'light'|'dark')   // [theme, toggle] for the header dark switch
+```
+
+**Archetype builders — spread one into `controls`; override only what the project sets.**
+`import { buttonArchetype, … } from './variantkit/schemas/archetypes'`. Each returns the
+element's full checklist with sane fallbacks; you pass the project's real values as overrides
+(`buttonArchetype({ surface:{ radius:8 }, color:{ accent:tokens.brand } })`). Element-specific
+axes + which section folders each includes — pick the closest, drop axes the element lacks:
+
+| archetype | own axes | section folders |
+|---|---|---|
+| `button` | size, iconPosition, fullWidth | surface, typography, color, states, motion |
+| `card` | media, density | layout, surface, typography, color, states, motion |
+| `hero` | alignment, ctaStyle, minHeight | layout, typography, color, motion |
+| `navbar` | height, sticky, blur, linkGap | surface, typography, color, motion |
+| `modal` | width, overlayOpacity, backdropBlur | layout, surface, typography, color, motion |
+| `form` | labelPosition, fieldGap, inputRadius | layout, surface, typography, color, states |
+| `table` | density, rowHeight, striped, dividers | surface, typography, color, states |
+| `list` | marker, itemGap, dense | layout, typography, color, states |
+| `badge` | size, pill, tone | surface, typography, color |
+| `pricing` | priceSize, featured, ctaStyle | layout, surface, typography, color, states, motion |
+| `section` | paddingY | layout, surface, typography, color |
+
+Section override keys (from `schemas/sections.ts`, inline so you needn't open it):
+`layout`{padding,gap,align,direction,maxWidth} · `surface`{bg,radius,borderWidth,borderColor,shadow} ·
+`typography`{size,weight,tracking,lineHeight,family} · `color`{accent,fg,bg,muted} ·
+`motion`{spring,hoverScale,duration} · `states`{hoverBg,hoverShadow,activeScale}.
+`shadow`/`hoverShadow` take `SHADOW_LEVELS` (none·xs·sm·md·lg·xl); `family` takes `FONT_FAMILIES`
+(system·sans·serif·mono) — resolve both to CSS in the variant via `SHADOWS`/`FONT_STACKS`. When
+no archetype fits, compose section builders directly (AGENT.md §7).
+
 ### The completeness bar — scale it to the element (AGENT.md §7)
 
 The panel must feel like the element's ACTUAL configuration panel, not 2-3 loose sliders —
@@ -124,11 +167,10 @@ tweakable decision becomes a control; a fixed structural constant, a value the l
 or anything nobody would touch stays inline. The bar is "would they turn this dial?", not "is
 there a number here?" — 8 controls that all matter beat 20 where half are noise (every junk row
 is a small tax the developer pays scanning the panel). A literal that IS a variant's structural
-identity is dropped by destructuring, not exposed. Use the archetype checklists in
-`variantkit/schemas/archetypes.ts` (button, card, hero, navbar, modal, form, table, list, badge,
-pricing, section) — checklists to ADAPT and seed from the project's real values, never sets to
-paste. Resolve token selects (shadow, font family) to CSS in the
-shell via `SHADOWS` / `FONT_STACKS`.
+identity is dropped by destructuring, not exposed. Use the archetype checklists from the table
+above (button, card, hero, navbar, modal, form, table, list, badge, pricing, section) — checklists
+to ADAPT and seed from the project's real values, never sets to paste. Resolve token selects
+(shadow, font family) to CSS in the shell via `SHADOWS` / `FONT_STACKS`.
 
 ### Manual wiring (if not using the helper)
 
