@@ -49,7 +49,9 @@ export default function Hero() {
         </div>
       </div>
 
-      <DialRoot />
+      {/* productionEnabled: this is a live marketing demo, so the panel must render on the
+          deployed (production) build. In a real app VariantKit stays dev-only by default. */}
+      <DialRoot productionEnabled />
       {preview && <PreviewModal onClose={() => setPreview(false)} />}
 
       <style dangerouslySetInnerHTML={{ __html: css }} />
@@ -82,7 +84,7 @@ h1{font-weight:600;font-size:clamp(36px,4.7vw,62px);line-height:1.02;letter-spac
 .foot{align-self:end;justify-self:start;max-width:50ch;display:flex;flex-direction:column;padding-bottom:clamp(6px,3vh,28px)}
 .sub{font-size:16px;line-height:1.62;color:var(--dim);font-weight:400;margin:0;text-shadow:0 1px 22px rgba(0,0,0,.7)}
 .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:28px}
-.cmd{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line-2);border-radius:9px;background:rgba(10,10,12,.6);backdrop-filter:blur(8px);padding:9px 9px 9px 13px;font-size:14px;font-weight:400}
+.cmd{display:inline-flex;align-items:center;gap:8px;height:44px;box-sizing:border-box;border:1px solid var(--line-2);border-radius:9px;background:rgba(10,10,12,.6);backdrop-filter:blur(8px);padding:0 8px 0 13px;font-size:14px;font-weight:400}
 .cmd .pr{color:var(--faint)}
 .cmd button{display:inline-grid;place-items:center;border:0;background:transparent;color:var(--faint);cursor:pointer;width:26px;height:26px;border-radius:6px;transition:color .18s,background .18s,transform .12s}
 .cmd button:hover{color:var(--ink);background:var(--chip)}
@@ -90,7 +92,7 @@ h1{font-weight:600;font-size:clamp(36px,4.7vw,62px);line-height:1.02;letter-spac
 .cmd button svg{display:block;animation:icpop .2s cubic-bezier(.2,.9,.2,1)}
 .cmd button.done{color:var(--accent)}
 @keyframes icpop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
-.show{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line-2);background:rgba(255,255,255,.04);color:var(--ink);font:inherit;font-size:14px;font-weight:500;padding:10px 16px 10px 14px;border-radius:9px;cursor:pointer;transition:background .18s,border-color .18s,transform .12s}
+.show{display:inline-flex;align-items:center;gap:8px;height:44px;box-sizing:border-box;border:1px solid var(--line-2);background:rgba(255,255,255,.04);color:var(--ink);font:inherit;font-size:14px;font-weight:500;padding:0 16px 0 14px;border-radius:9px;cursor:pointer;transition:background .18s,border-color .18s,transform .12s}
 .show svg{display:block;color:var(--dim);transition:color .18s}
 .show:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22)}
 .show:hover svg{color:var(--ink)}
