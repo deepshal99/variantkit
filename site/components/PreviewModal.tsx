@@ -104,6 +104,7 @@ const css = `
   top:calc(50dvh - min(40vh,400px) + 96px)!important;
   right:calc(max(0px,(100vw - 1240px)/2) + clamp(34px,3vw,56px))!important}
 .dialkit-panel-inner:not([data-collapsed='true']){
+  width:min(384px, calc(100vw - 48px))!important;box-sizing:border-box!important;
   border-radius:16px!important;border:1px solid var(--line-2)!important;background:#101113!important;
   backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
   box-shadow:0 40px 110px -36px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.03)!important;
