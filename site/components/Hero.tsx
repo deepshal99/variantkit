@@ -4,6 +4,7 @@ import { DialRoot } from 'dialkit'
 import Link from 'next/link'
 import WireframeMesh from './WireframeMesh'
 import PreviewModal from './PreviewModal'
+import { LogoMark } from './Logo'
 
 export default function Hero() {
   const [preview, setPreview] = useState(false)
@@ -16,7 +17,7 @@ export default function Hero() {
       <div className="wash" />
 
       <header className="top">
-        <Link className="brand" href="/"><span className="mark"><i /><i /><i /></span>VariantKit</Link>
+        <Link className="brand" href="/"><LogoMark className="mark" size={19} />VariantKit</Link>
         <nav className="nav">
           <Link href="/docs">Docs</Link>
           <a className="ic" href="https://github.com/deepshal99/variantkit" target="_blank" rel="noopener" aria-label="GitHub">
@@ -67,11 +68,9 @@ const css = `
 
 .top,.headline,.foot{position:relative;z-index:2}
 .top{display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:560;font-size:15px;letter-spacing:-.01em}
-.mark{display:inline-flex;gap:2.5px}
-.mark i{width:5px;height:15px;border-radius:2px;background:var(--ink);opacity:.85;display:block;transition:.4s cubic-bezier(.2,.9,.2,1)}
-.mark i:nth-child(2){opacity:.55;height:18px}.mark i:nth-child(3){opacity:.3}
-.brand:hover .mark i:nth-child(1){background:#fff}
+.brand{display:flex;align-items:center;gap:9px;font-weight:560;font-size:15px;letter-spacing:-.01em}
+.mark{display:block;color:var(--ink);transition:transform .4s cubic-bezier(.2,.9,.2,1)}
+.brand:hover .mark{transform:translateY(-1px)}
 .nav{display:flex;align-items:center;gap:6px}
 .nav a{font-size:14px;color:var(--dim);font-weight:450;padding:7px 11px;border-radius:8px;transition:.18s;display:inline-flex;align-items:center}
 .nav a:hover{color:var(--ink);background:var(--chip)}

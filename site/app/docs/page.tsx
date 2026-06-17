@@ -1,6 +1,7 @@
 import Link from 'next/link'
+import { LogoMark } from '../../components/Logo'
 
-export const metadata = { title: 'Docs · VariantKit' }
+export const metadata = { title: 'Docs', description: 'How VariantKit works: install once, your agent generates a few real variants wired to a live control panel, tune them, finalize one, and the rest get pruned.' }
 
 const NAV = [
   { id: 'introduction', label: 'Introduction' },
@@ -15,7 +16,7 @@ export default function Docs() {
   return (
     <div className="docs">
       <header className="d-top">
-        <Link className="brand" href="/"><span className="mark"><i /><i /><i /></span>VariantKit</Link>
+        <Link className="brand" href="/"><LogoMark className="mark" size={19} />VariantKit</Link>
         <nav className="nav">
           <Link href="/docs" className="active">Docs</Link>
           <a className="ic" href="https://github.com/deepshal99/variantkit" target="_blank" rel="noopener" aria-label="GitHub">
@@ -83,10 +84,9 @@ const css = `
 .docs{min-height:100dvh;background:var(--bg)}
 .d-top{position:sticky;top:0;z-index:10;height:56px;display:flex;align-items:center;justify-content:space-between;
   padding:0 clamp(20px,4vw,40px);border-bottom:1px solid var(--line);background:rgba(8,9,10,.8);backdrop-filter:blur(10px)}
-.d-top .brand{display:flex;align-items:center;gap:10px;font-weight:560;font-size:15px;letter-spacing:-.01em}
-.d-top .mark{display:inline-flex;gap:2.5px}
-.d-top .mark i{width:5px;height:15px;border-radius:2px;background:var(--ink);opacity:.85;display:block}
-.d-top .mark i:nth-child(2){opacity:.55;height:18px}.d-top .mark i:nth-child(3){opacity:.3}
+.d-top .brand{display:flex;align-items:center;gap:9px;font-weight:560;font-size:15px;letter-spacing:-.01em}
+.d-top .mark{display:block;color:var(--ink);transition:transform .4s cubic-bezier(.2,.9,.2,1)}
+.d-top .brand:hover .mark{transform:translateY(-1px)}
 .d-top .nav{display:flex;align-items:center;gap:6px}
 .d-top .nav a{font-size:14px;color:var(--dim);padding:7px 11px;border-radius:8px;transition:.18s;display:inline-flex;align-items:center}
 .d-top .nav a:hover{color:var(--ink);background:var(--chip)}
