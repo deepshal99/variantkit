@@ -2,8 +2,7 @@
 // Shared plumbing for the preview tabs. Every tab is a real component wired to the REAL
 // VariantKit/DialKit panel: usePreview registers the panel (with shuffle/reset via
 // usePanelActions) and, on Finalize, copies the decision + flashes the panel button to
-// "✓ Copied" — exactly like the shipped product. CodeBlock shows the live props as code, so
-// the visual and the source stay in lockstep as you tune.
+// "✓ Copied" — exactly like the shipped product.
 import { useDialKit, DialStore } from 'dialkit'
 import { usePanelActions } from '../vk/usePanelActions'
 
@@ -40,10 +39,4 @@ export function usePreview(name: string, config: Record<string, unknown>, finali
   return useDialKit(name, config as never, {
     onAction: () => finalizePanel(name, finalizeLabel),
   }) as PreviewValues
-}
-
-export function CodeBlock({ lines }: { lines: string[] }) {
-  return (
-    <pre className="vk-code"><code>{lines.join('\n')}</code></pre>
-  )
 }

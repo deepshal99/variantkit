@@ -4,20 +4,20 @@
 // Switch tabs to see VariantKit working across a button, a pricing card, a feature section, and
 // a callout — same panel, different component. Each tab also shows its live props as code.
 import { useEffect, useState, type ComponentType } from 'react'
-import ButtonPreview from './preview/ButtonPreview'
+import HeroPreview from './preview/HeroPreview'
 import PricingPreview from './preview/PricingPreview'
-import FeaturePreview from './preview/FeaturePreview'
-import BannerPreview from './preview/BannerPreview'
+import StatPreview from './preview/StatPreview'
+import TestimonialPreview from './preview/TestimonialPreview'
 
 const TABS: { id: string; label: string; Comp: ComponentType }[] = [
-  { id: 'button', label: 'Button.tsx', Comp: ButtonPreview },
+  { id: 'hero', label: 'Hero.tsx', Comp: HeroPreview },
   { id: 'pricing', label: 'PricingCard.tsx', Comp: PricingPreview },
-  { id: 'feature', label: 'Capabilities.tsx', Comp: FeaturePreview },
-  { id: 'banner', label: 'Callout.tsx', Comp: BannerPreview },
+  { id: 'stat', label: 'StatCard.tsx', Comp: StatPreview },
+  { id: 'testimonial', label: 'Testimonial.tsx', Comp: TestimonialPreview },
 ]
 
 export default function PreviewModal({ onClose }: { onClose: () => void }) {
-  const [tab, setTab] = useState('button')
+  const [tab, setTab] = useState('hero')
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -93,13 +93,10 @@ const css = `
 .modal-stage{flex:1;min-height:0;overflow:auto;position:relative;
   background:radial-gradient(60% 50% at 30% 10%, rgba(255,255,255,.02), transparent 60%), #0a0b0d}
 
-/* shared preview layout: centered canvas + live code, with room reserved for the panel */
-.pv{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:clamp(36px,5vw,60px)}
-.pv-canvas{flex:0 1 auto;display:flex;align-items:center;justify-content:center;width:100%;min-height:220px}
-.vk-code{margin:0;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;line-height:1.65;color:var(--dim);
-  background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:12px;padding:16px 18px;max-width:min(440px,92%);overflow-x:auto}
-.vk-code code{white-space:pre}
-@media (min-width:921px){ .pv{padding-right:470px} }
+/* shared preview layout: the component centered in the stage, with room reserved for the panel */
+.pv{min-height:100%;display:flex;align-items:center;justify-content:center;padding:clamp(36px,5vw,60px)}
+.pv-canvas{display:flex;align-items:center;justify-content:center;width:100%;min-height:220px}
+@media (min-width:921px){ .pv{padding-right:460px} }
 
 /* the REAL VariantKit panel, floated at the modal's top-right, latest polished chrome.
    Only the EXPANDED panel is constrained; the collapsed bubble is left to DialKit. */
