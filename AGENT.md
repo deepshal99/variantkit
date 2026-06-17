@@ -168,14 +168,22 @@ element, each with its contextual controls and its own Finalize. See `examples/c
 **Easiest path — the `Studio` helper.** Don't hand-write the wiring above; use it:
 
 ```tsx
-import { Studio, type ElementDef } from './variantkit/react'
+import { Studio, resolvePanel, dropAxes, type ElementDef } from './variantkit/react'
 
 const ELEMENTS: ElementDef[] = [
-  { name: 'PricingCard', keys: ['slab','ledger','inverse'], controls: cardControls, render: (variant, v) => <Card variant={variant} {...v} /> },
+  { name: 'PricingCard', keys: ['slab','ledger','inverse'], controls: cardControls, render: (variant, v) => <Card variant={variant} {...resolvePanel(v)} /> },
   // ...more elements, each with ITS OWN authored controls
 ]
 <Studio elements={ELEMENTS} focusOnHover />   // one panel, folders, finalize routing, focus
 ```
+
+`render` must spread **`resolvePanel(v)`**, not raw `{...v}`: Studio hands it the nested panel
+values with token selects still as keywords (`shadow:'lg'`, `family:'sans'`, `weight:'700'`).
+`resolvePanel` flattens the archetype section folders up one level and resolves the tokens to CSS
+(`SHADOWS`/`FONT_STACKS`, `weight`→number) — exactly the mechanical step a shell used to hand-write.
+It is render-only; the finalize decision still measures overrides in raw token-space (the §"Decision"
+diff below is unchanged). Build `controls` from an archetype with `dropAxes(arch, ['states','surface.bg',
+'color.bg'])` to remove the knobs the variants own — that replaces the old destructuring boilerplate.
 
 `focusOnHover` expands the panel folder of the element you hover — so the panel always shows
 "the element you're editing." It is panel-side only: **nothing is ever drawn on or around the

@@ -81,24 +81,35 @@ writes a **Decision** → agent **prunes** losers. Full glossary: `NAMING.md`.
 it gives one panel, a folder per element, finalize routing, and focus-on-hover:
 
 ```tsx
-import { Studio, type ElementDef } from './variantkit/react'
+import { Studio, resolvePanel, dropAxes, type ElementDef } from './variantkit/react'
+import { pricingArchetype } from './variantkit/schemas/archetypes'
 
 const ELEMENTS: ElementDef[] = [
   {
     name: 'PricingCard',
     keys: ['slab', 'ledger', 'inverse'],
-    // Authored for THIS element, defaults from THIS project's tokens — not a fixed menu.
-    controls: {
-      density: { type: 'select', options: ['compact', 'comfortable'], default: 'comfortable' },
-      accent: tokens.brand,
-      showAnnualToggle: true,
-    },
-    render: (variant, v) => <Card variant={variant} {...v} />,
+    // Spread an archetype, seed defaults from THIS project's tokens, then dropAxes the knobs
+    // the variants own (their bg, fg identity, hover states) so they don't become dials.
+    controls: dropAxes(
+      pricingArchetype({ surface: { radius: 18 }, color: { accent: tokens.brand }, priceSize: 40 }),
+      ['states', 'surface.bg', 'color.bg'],
+    ),
+    // resolvePanel does the mechanical flatten + token→CSS resolution, so render stays a one-liner.
+    render: (variant, v) => <Card variant={variant} {...resolvePanel(v)} />,
   },
   // add more elements here; each gets its own folder + its own authored controls
 ]
 <Studio elements={ELEMENTS} focusOnHover />
 ```
+
+**Always wrap render's values in `resolvePanel(v)`** — Studio hands `render` the raw nested panel
+values with token selects still as keywords (`shadow: 'lg'`, `family: 'sans'`, `weight: '700'`).
+`resolvePanel` flattens the section folders up one level and resolves the tokens to CSS
+(`SHADOWS`/`FONT_STACKS`, `weight`→number), so the variant component receives flat, render-ready
+props. Spreading raw `{...v}` instead silently passes nested objects and breaks the styling. It is
+render-only: the finalize decision still measures overrides in raw token-space, so the taste signal
+is unchanged. `dropAxes(config, paths)` replaces the old hand-written destructuring to drop owned
+axes (`'surface.bg'` drops one key; `'states'` drops a whole folder).
 
 `controls` is whatever fits the element — any DialKit control: number `[default,min,max]` →
 slider, string → text, `#hex` → color, boolean → segmented toggle, `select` → dropdown,

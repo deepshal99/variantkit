@@ -20,6 +20,8 @@
 //   const v = useDialKit('Button', cfg, { onAction: () =>
 //     copyDecision(buildDecision('Button', v, defaultsOf(cfg), regOf(['solid','outline','ghost']))) })
 
+import { SHADOWS, FONT_STACKS } from './schemas/sections'
+
 // Loose config shape — these are DialKit config objects; we don't import DialKit's types here
 // so the helpers stay framework-light. `any` keeps the result assignable to DialKit's own
 // config type at the useDialKit call site without coupling this file to DialKit.
@@ -96,4 +98,61 @@ export function flatDefaults(cfg: PanelConfig, prefix = ''): Record<string, numb
     }
   }
   return out
+}
+
+// The archetype section folders resolvePanel flattens. Anything not in here (the element's own
+// top-level controls, or a custom folder you authored) is left exactly as-is.
+const SECTIONS = new Set(['layout', 'surface', 'typography', 'color', 'motion', 'states'])
+
+// Turn the panel's live values (nested archetype folders, token selects as keywords) into the
+// flat, render-ready props a variant component consumes — so `render` is a one-liner:
+//
+//   render: (variant, v) => <Card variant={variant} {...resolvePanel(v)} />
+//
+// It does exactly the mechanical work a shell used to hand-write every time: lifts the standard
+// section folders (layout/surface/typography/color/motion/states) up one level, resolves the
+// token selects to CSS (`shadow`/`hoverShadow` → SHADOWS, `family` → FONT_STACKS), and coerces
+// `weight` to a number. `variant`, `finalize`, and `_`-prefixed keys are dropped. This is a
+// RENDER-time convenience only — buildDecision still sees the raw token-space values, so the
+// taste signal is unchanged. If you keep two same-named keys across folders (e.g. surface.bg and
+// color.bg), the later folder wins; alias one in the archetype or map it by hand.
+export function resolvePanel(
+  values: Record<string, unknown>,
+  opts?: { shadows?: Record<string, string>; fonts?: Record<string, string> },
+): Record<string, unknown> {
+  const shadows = opts?.shadows ?? SHADOWS
+  const fonts = opts?.fonts ?? FONT_STACKS
+  const out: Record<string, unknown> = {}
+  const put = (k: string, v: unknown) => {
+    if (k === 'variant' || k === 'finalize' || k.startsWith('_')) return
+    if ((k === 'shadow' || k === 'hoverShadow') && typeof v === 'string') out[k] = shadows[v] ?? v
+    else if (k === 'family' && typeof v === 'string') out[k] = fonts[v] ?? v
+    else if (k === 'weight') out[k] = typeof v === 'string' ? Number(v) : v
+    else out[k] = v
+  }
+  for (const [k, v] of Object.entries(values)) {
+    if (SECTIONS.has(k) && v && typeof v === 'object' && !Array.isArray(v)) {
+      for (const [kk, vv] of Object.entries(v as Record<string, unknown>)) put(kk, vv)
+    } else put(k, v)
+  }
+  return out
+}
+
+// Immutably drop owned axes from an archetype before it becomes the panel — the structural
+// knobs a variant owns (its surface bg, fg identity, hover states) shouldn't be dials. Replaces
+// the per-shell destructuring dance with one call:
+//
+//   const controls = dropAxes(pricingArchetype({...}), ['states', 'surface.bg', 'color.bg'])
+//
+// Dot-paths address nested folders ('surface.bg'); a bare key drops a whole folder or top-level
+// control ('states', 'priceSize'). Missing paths are no-ops.
+export function dropAxes(config: PanelConfig, paths: string[]): PanelConfig {
+  const clone = structuredClone(config)
+  for (const path of paths) {
+    const parts = path.split('.')
+    let obj: Record<string, unknown> | undefined = clone
+    for (let i = 0; i < parts.length - 1 && obj; i++) obj = obj[parts[i]] as Record<string, unknown>
+    if (obj) delete obj[parts[parts.length - 1]]
+  }
+  return clone
 }

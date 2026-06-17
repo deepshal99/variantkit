@@ -23,6 +23,10 @@ import { useDialKit, DialStore } from 'dialkit'
 import { panelConfig, defaultsOf, regOf, flatDefaults, type PanelConfig } from './configs'
 import { buildDecision, submitDecision, type ParamValue } from './buildDecision'
 
+// Re-exported so a generated shell imports its render helpers from the same place as Studio:
+//   import { Studio, resolvePanel, dropAxes } from './variantkit/react'
+export { resolvePanel, dropAxes } from './configs'
+
 export interface ElementDef {
   /** Component name — becomes the folder title and the decision's component. */
   name: string
