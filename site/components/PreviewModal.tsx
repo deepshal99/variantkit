@@ -100,9 +100,12 @@ const css = `
 
 /* the REAL VariantKit panel, floated at the modal's top-right, latest polished chrome.
    Only the EXPANDED panel is constrained; the collapsed bubble is left to DialKit. */
+/* Anchor to the MODAL's right edge (= .ov padding when viewport < 1240, else the centered gap),
+   then inset 40px in. Anchoring to the viewport edge instead clipped the controls against the
+   modal border at 920-1240px widths. */
 .dialkit-panel{position:fixed!important;z-index:320!important;left:auto!important;bottom:auto!important;transform:none!important;
   top:calc(50dvh - min(40vh,400px) + 96px)!important;
-  right:calc(max(0px,(100vw - 1240px)/2) + clamp(34px,3vw,56px))!important}
+  right:calc(max(clamp(16px,3vw,40px), (100vw - 1240px)/2) + 40px)!important}
 .dialkit-panel-inner:not([data-collapsed='true']){
   width:min(384px, calc(100vw - 48px))!important;box-sizing:border-box!important;
   border-radius:16px!important;border:1px solid var(--line-2)!important;background:#101113!important;
